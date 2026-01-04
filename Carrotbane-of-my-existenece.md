@@ -432,10 +432,16 @@ FOUND FIRST FLAG = THM{9cd687b330554bd807a717e62910e3d0}
 **aiosmtpd -n -l 192.168.165.14:25** 
 - SMTP started and is listening on port 25 on our local machine
 
-- now I am going to use swaks(Swiss Army Knife for SMTP testing) to send emails to the email addresses we found on hopaitech.thm. 
+- now I am going to use swaks(Swiss Army Knife for SMTP testing) to send emails to the email addresses we found on hopaitech.thm.
 
-**swaks --to sir.carrotbane@hopaitech.thm,shadow.whiskers@hopaitech.thm,obsidian.fluff@hopaitech.thm,nyx.nibbles@hopaitech.thm,midnight.hop@hopaitech.thm,crimson.ears@hopaitech.thm,violet.thumper@hopaitech.thm,grim.bounce@hopaitech.thm --from spider@mmail --server hopaitech.thm  --header "Subject: JUST TESTING"  --body "Respondddd....Say something.....yes chief..ok chief..maybe chief.."
+**swaks \
+  --to sir.carrotbane@hopaitech.thm,shadow.whiskers@hopaitech.thm,obsidian.fluff@hopaitech.thm,nyx.nibbles@hopaitech.thm,midnight.hop@hopaitech.thm,crimson.ears@hopaitech.thm,violet.thumper@hopaitech.thm,grim.bounce@hopaitech.thm \
+  --from spider@mmail \
+  --server hopaitech.thm \
+  --header "Subject: JUST TESTING" \
+  --body "Respondddd....Say something.....yes chief..ok chief..maybe chief.."
 **
+
 ```
 === Trying hopaitech.thm:25...
 === Connected to hopaitech.thm.
