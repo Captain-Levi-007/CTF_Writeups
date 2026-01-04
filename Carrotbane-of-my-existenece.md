@@ -1,5 +1,5 @@
 # Carrotbane of My Existence 
-===========================================
+
 
 ## recon 
 ```
@@ -63,7 +63,7 @@ hopaitech.thm.      3600    IN  SOA ns1.hopaitech.thm. admin.hopaitech.thm. 1 36
 ```
 
 - Add the subs to the /etc/hosts  files 
-==========================================
+
 ## First flag
 - At the URL-analyzer sub  is taking url as input and analyzing the contents of the URL with an ai.
 
@@ -337,7 +337,7 @@ nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
 
 Dns-manager creds = admin:v3rys3cur3p@ssw0rd!
 FOUND FIRST FLAG = THM{9cd687b330554bd807a717e62910e3d0}
-===================================================================================================
+
 ## Second Flag
 
 -After logging in to Dns-Manager found a couple of DNS records
@@ -346,7 +346,7 @@ FOUND FIRST FLAG = THM{9cd687b330554bd807a717e62910e3d0}
 - ns1.hopaitech.thm → 172.18.0.3
 - url-analyzer.hopaitech.thm → 172.18.0.3
 - ticketing-system.hopaitech.thm → 172.18.0.2
-==============================================================
+
 ## Finding open ports via ssrf at url-analyzer
 
 ### ticketing-system.hopaitech.thm(172.18.0.2)
