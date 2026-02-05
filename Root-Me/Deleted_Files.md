@@ -39,6 +39,6 @@ usb.image
 - Open autopsy -> create a new case -> select case directroy -> now select image for analysis(Type = disk image) -> analyze the disk. 
 - Now we can see the contents of the disk.
 - In the Deleted files fields we can find an image file.
-![Screenshot](images/Deleted_files.png)
+![Screenshot](Data/Deleted_files.png)
 - view it in text format. there we can see the owner of the file.
-**javier_turcot** 
+- The password is **javier_turcot** 
