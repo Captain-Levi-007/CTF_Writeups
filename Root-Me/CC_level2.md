@@ -11,12 +11,12 @@ ch2.tbz2
 file ch2.tbz2                                                                                                                                                                                               py_venv
 ch2.tbz2: bzip2 compressed data, block size = 900k
 ```
-- It is a bzip compressed data let unzip it 
+- It is a bzip compressed data, let's unzip it 
 ```
 tar -xvjf ch2.tbz2                                                                                                                                                                                          py_venv
 ch2.dmp
 ```
-- Now we have memory dump file.
+- From the lab statement, we have a memory dump file.
 - A memory dump is a snapshot of a system’s RAM at a specific moment.
 - RAM contains:
 	- Running processes
@@ -26,7 +26,7 @@ ch2.dmp
 	- Injected malware
 	- Command history
 	- Decrypted data that NEVER touches disk
-- Lets analyze it. I am going to use volatility tool, which is a awsome tool analyze volatile memory. 
+- Let's analyze it. I am going to use the volatility tool, which is a awsome tool to analyze volatile memory. 
 
 ***The Volatility Framework is a completely open collection of tools,
 implemented in Python under the GNU General Public License, for the
@@ -38,15 +38,15 @@ pip install volatility3
 ```
 - Now all set lets go!
 
-- Well first i tried to identify the OS
+- Well, first I tried to identify the OS
 ```
 vol -f ch2.dmp banner                                                                                                                                                                                       py_venv
 Volatility 3 Framework 2.27.0
 Progress:  100.00		PDB scanning finished                  
 Offset	Banner
 ```
-- Used banner to extract banner but we got nothing . which means the momoey dump is likely form windos os. 
-- lets try to find info about the memory dump.
+- Used banner to extract banner, but we got nothing. which means the money dump is most likely form windos os. 
+- Let's try to find info about the memory dump.
 
 ```
 vol -f ch2.dmp windows.info                                                                                                                                                                            7s  py_venv
@@ -81,7 +81,7 @@ PE TimeDateStamp	Mon Jul 13 23:15:19 2009
 ```
 
 - This line clearly tells that the os is Windows7 **NTBuildLab	7600.16385.x86fre.win7_rtm.09071** 
-- wll to solve our lab we need to know the hostname . for that i am going to read windows registry
+- well to solve our lab, we need to find the hostname. For that i am going to read windows registry.
 ```
 vol -f ch2.dmp windows.registry.hivelist                                                                                                                                                                    py_venv
 
@@ -106,8 +106,7 @@ Offset	FileFullPath	File output
 
 - Copy the offset value of **\REGISTRY\MACHINE\SYSTEM**
 - I asked ChatGPT to give me the location in the registry hive where the hostname resides.
-- It given couple of locaitons i got the hostname value in the below loaction. 
-- we got the path **ControlSet001\Control\ComputerName\ActiveComputerName**
+- It gave a couple of locaitons i got the hostname value in the location. **ControlSet001\Control\ComputerName\ActiveComputerName**
 
 ```
 vol -f ch2.dmp windows.registry.printkey --offset 0x8b21c008 --key "ControlSet001\Control\ComputerName\ActiveComputerName"                                                                                  py_venv
