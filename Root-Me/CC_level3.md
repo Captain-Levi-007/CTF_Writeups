@@ -6,14 +6,14 @@ The uncompressed memory dump md5 hash is e3a902d4d44e0f7bd9cb29865e0a15de***
 
 ## Solution
 
-- Lets download the attachment and unzip it.
+- Let's download the attachment and unzip it.
 ```
   ~/Root_me/Forensics ❯ tar -xjf ch2.tbz2    
   ~/Root_me/Forensics ❯ ls                                                                                                                                                                                                             25s
 ch2.dmp  ch2.tbz2
 ```
-- what is a momory dump? **A memory dump is a snapshot of RAM at a moment in time.**
-- The core questions we should ask ourself when we analyzing a memory dump for finding malware.
+- What is a memory dump? **A memory dump is a snapshot of RAM at a moment in time.**
+- The core questions we should ask ourselves when we analyze a memory dump for finding malware.
 
 	- What OS is this memory from?
 	- What processes were running?	
@@ -21,7 +21,7 @@ ch2.dmp  ch2.tbz2
 	- Is any code hidden or injected?
 	- Is there evidence of execution or control?
 	- Can we prove malicious behavior?
-- Lets Go one by one.
+- Let's go one by one.
 - Indentifying os and profile of the memory dump file 
 ```
  vol -f ch2.dmp windows.info                                                                                                                                                                                 py_venv
@@ -53,8 +53,8 @@ PE MinorOperatingSystemVersion	1
 PE Machine	332
 PE TimeDateStamp	Mon Jul 13 23:15:19 2009
 ```
-- From the above output we can see the operating system is  **Windows 7 RTM (Build 7600) 32-bit (x86)**
-- Well malwares always runs as a process. so i want to list the active processes 
+- From the above output, we can see the operating system is  **Windows 7 RTM (Build 7600) 32-bit (x86)**
+- Well, malware always runs as a process, so I want to list all the active processes 
 ```
   ~/Root_me/Forensics ❯vol -f ch2.dmp windows.pslist                                                                                                                                                                               py_venv
 
@@ -114,12 +114,12 @@ PID	PPID	ImageFileName	Offset(V)	Threads	Handles	SessionId	Wow64	CreateTime	Exit
 1720	832	audiodg.exe	0x87c90d40	5	117	0	False	2013-01-12 16:58:11.000000 UTC	N/A	Disabled
 3144	3152	winpmem-1.3.1.	0x87cbfd40	1	23	1	False	2013-01-12 16:59:17.000000 UTC	N/A	Disabled
 ```
-- Well if you observe thoroughly , you can notice couple of iexplore.exe processes running on the system.  with pid **2772,1136,3044**
-- See the process ID with **1616** cmd.exe is intiated by the irxplore.exe . looks little odd right lets dig deep.
+- Well, if you observe thoroughly, you can notice a couple of iexplore.exe processes running on the system.  with pid **2772,1136,3044**
+- See the process ID with **1616**. cmd.exe is initiated by iexplore.exe. Looks a little odd, right? Let's dig deep.
 ```
 1616	2772	cmd.exe	0x89898030	2	101	1	False	2013-01-12 16:55:49.000000 UTC	N/A	Disabled
 ```
-- lets check cmdline of the iexplore processes.
+- lets check the cmdline of that iexplore processes.
 
 ```
 vol -f ch2.dmp windows.cmdline --pid 2772                                                                                                                                                              6s  py_venv
@@ -150,12 +150,12 @@ PID	Process	Args
 3044	iexplore.exe	"C:\Program Files\Internet Explorer\iexplore.exe" SCODEF:1136 CREDAT:71937
 ```
 
-- The iexplore.exe with pid 2772 and (1136,3044) are intiated from different loctions. 
-- lets confirm ou suspesion using the **console** plugin.
-- The windows.consoles plugin extracts data from Windows Console Host memory.
+- The iexplore.exe with pid 2772 and (1136,3044) are initiated from different locations. 
+- lets confirm our suspicion using the **console** plugin.
+- The **Windows.consoles** plugin extracts data from Windows Console Host memory.
 	- That includes:
 	- Commands typed in cmd.exe
-	- Commands typed in powershell.exe
+	- Commands typed in PowerShell.exe
 	- Output shown in the console window
 	- Command history even if the window was closed
 ```
@@ -174,9 +174,9 @@ CommandCount: 0 LastAdded: -1 LastDisplayed: -1
 FirstCommand: 0 CommandCountMax: 50
 ProcessHandle: 0x0
 ```
-- The conhost.exe is associated with cmd.exe and try to execute tcprelay.exe(a networking utility, often used as a command-line tool, designed to act as a TCP connection forwarder, load balancer, or to proxy/log network traffic between a client and a server).
+- The conhost.exe is associated with cmd.exe and tries to execute tcprelay.exe(a networking utility, often used as a command-line tool, designed to act as a TCP connection forwarder, load balancer, or to proxy/log network traffic between a client and a server).
 
-- So this suspecious behaviour tells that the iexplorer running fomr user john doe is a malware.
+- So this suspicious behaviour tells that the iexplorer running form user directory John Doe is malware.
 
 - So the answer is md5 sum of the path **C:\Users\John Doe\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\iexplore.exe**
 
