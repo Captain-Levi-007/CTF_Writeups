@@ -5,15 +5,15 @@ Berthier, thanks to this new information about the processes running on the work
 The validation flag should have this format : IP:PORT
 The uncompressed memory dump md5 hash is e3a902d4d44e0f7bd9cb29865e0a15de***
 
-- Download the attackment and unzip it .
+- Download the attachment and unzip it.
 ```
 tar xjf ch2.tbz2 
 ```
-- In level 3 we find that the malware trying to exfiltreate data. in this taks we have to find the internal ip the malware targetting.
+- In level 3, we find that the malware is trying to exfiltrate data. In this task, we have to find the internal IP address that the malware is targeting.
 
-- To solve this lab we are going to use a framework called volatility . which is used to analyse volatile memory. 
+- To solve this lab, we are going to use a framework called Volatility, which is used to analyse volatile memory. 
 - We are going to use a plugin called **netscan**.
-- **netscan** reconstructs network connections directly form RAM.
+- **netscan** reconstructs network connections directly from RAM.
 
 ```
 vol -f ch2.dmp windows.netscan                                                     py_venv
@@ -144,20 +144,20 @@ Offset	Proto	LocalAddr	LocalPort	ForeignAddr	ForeignPort	State	PID	Owner	Created
 0x1fdc5008	TCPv4	192.168.1.66	58782	157.55.15.45	80	ESTABLISHED	1220	AvastSvc.exe	-
 ```
 
-- The output comatins 10 columns
+- The output contains 10 columns
 
 	- Offset - Location in memory
-	- Proto - Network protocol used by process
+	- Proto - Network protocol used by the process
 	- LocalAddr - Source address of network connection
 	- LocalPort - Source port of network connection
 	- ForeignAddr - Destination address of network connection
 	- ForeignPort - Destination address of network connection
-	- State - State of network connection i.e. established, closed or listening
+	- State - State of network connection, i.e., established, closed, or listening
 	- PID - Process ID of associated process
 	- Owner -  Account associated with process
 	- Created - Time network connection has initiated
 
-- We got the host ip address from the above output **192.168.1.66** except that nothing else seems intresting . 
+- We got the host ip address from the above output **192.168.1.66**, except that nothing else seems interesting. 
 - lets try **memdump** on the process id **2772**
 - **memdump** dumps (extracts) a process’s memory from the RAM image to disk.
 
@@ -169,7 +169,7 @@ dumps ❯ ls                                                                    
 pid.2772.dmp
 ```
 
-- now that we know the host ip start like 192.168 and ther malware using tcprelay.exe to exfiltrate data. lets look for the string in the dump file 
+- Now that we know the host ip start like 192.168 and the malware uses tcprelay.exe to exfiltrate data. lets look for the string in the dump file 
 ```
 strings pid.2772.dmp| grep tcprelay.exe                                      py_venv
 
@@ -182,6 +182,6 @@ C:\Users\JOHNDO~1\AppData\Local\Temp\TEMP23\tcprelay.exe
 5C:\Users\JOHNDO~1\AppData\Local\Temp\TEMP23\tcprelay.exeg[j
 ```
 
-- See the first line the tcprelay isattacking the internal service ait port 3389 
+- See the first line, the tcprelay is attacking the internal service at port 3389 
 - so the password for lab is 192.168.0.22:3389
 **192.168.0.22:3389**
