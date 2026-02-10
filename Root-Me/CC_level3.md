@@ -174,7 +174,7 @@ CommandCount: 0 LastAdded: -1 LastDisplayed: -1
 FirstCommand: 0 CommandCountMax: 50
 ProcessHandle: 0x0
 ```
-- The conhost.exe is associated with cmd.exe and tries to execute tcprelay.exe(a networking utility, often used as a command-line tool, designed to act as a TCP connection forwarder, load balancer, or to proxy/log network traffic between a client and a server).
+- The conhost.exe is associated with cmd.exe and tries to execute tcprelay.exe(a networking utility, often used as a command-line tool, designed to act as a TCP connection forwarder, load balancer, or to proxy/log network traffic between a client and a server), which may be  used for data exfiltration.
 
 - So this suspicious behaviour tells that the iexplorer running form user directory John Doe is malware.
 
