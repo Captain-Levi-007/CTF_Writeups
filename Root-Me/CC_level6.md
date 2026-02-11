@@ -6,7 +6,7 @@ The validation password is a fully qualified domain name : hote.domaine.tld
 The uncompressed memory dump md5 hash is e3a902d4d44e0f7bd9cb29865e0a15de
 NB : This challenge require the clearance of the level 3.***
 
-- Lets Download the attachment . and unzip it
+- Lets Download the attachment. and unzip it
 
 ```
 tar -xvjf ch2.tbz2                                                                               py_venv
@@ -14,8 +14,8 @@ ch2.dmp
 ```
 - Well from the [Comand & Control level3](https://github.com/Captain-Levi-007/CTF_Writeups/blob/main/Root-Me/CC_level3.md) We find that the iexplore.exe is the malisious process. 
 - And the pid od te precess is 2772.  
-- First i want to check what dlls and executable are being utilized by the process 
-- To list all dlls and main executable i am goinf to use tool called  **dlllist**
+- First i want to check what dlls and executables are being utilized by the process 
+- To list all dlls and the main executable i am going to use a plugin called  **dlllist**
 - **dlllist** Lists all DLLs (and the main executable) loaded inside a specific process.
 
 ```
@@ -54,9 +54,10 @@ PID	Process	Base	Size	Name	Path	LoadCount	LoadTime	File output
 2772	iexplore.exe	0x73d80000	0x38000	fwpuclnt.dll	C:\Windows\System32\fwpuclnt.dll	1	2013-01-12 16:55:49.000000 UTC	Disabled
 2772	iexplore.exe	0x756b0000	0x4b000	apphelp.dll	C:\Windows\system32\apphelp.dll	-1	2013-01-12 16:55:49.000000 UTC	Disabled
 ```
-- See the main executable is iexplore.exe and remeber the base **0x400000** we need this for later.
+- See the main executable is iexplore.exe, and remember the base **0x400000**, we need this for later.
 - Now we are going to use another plugin called **pedump**
 - **pedump** Reconstructs a PE (Portable Executable) image directly from process memory.
+- We're going to use the base in the command.
 
 ```
 vol -f ch2.dmp -o dumps windows.pedump --pid 2772 --base 0x400000   py_venv
@@ -67,12 +68,12 @@ PID	Process	File output
 
 2772	iexplore.exe	PE.0x87b6b030.2772.0x400000.dmp
 ```
-- now in dumps directory we have "PE.0x87b6b030.2772.0x400000.dmp" file .
+- Now in the dumps directory, we can see the "PE.0x87b6b030.2772.0x400000.dmp" file.
 ```
 file PE.0x87b6b030.2772.0x400000.dmp                                                                                                                      py_venv
 PE.0x87b6b030.2772.0x400000.dmp: PE32 executable for MS Windows 4.00 (GUI), Intel i386 (stripped to external PDB), 5 sections
 ```
-- I am goinf to analyze this file using virustotal . upload the file and in the behaviour ection we can find different domain at Network Communication section.
+- I am going to analyze this file using Virustotal. upload the file, then press analyze, in behaviour -> network communication, we can find the domains.
 ```
 furious.devilslife.com
 ns2.wrauzfevvo.com
@@ -81,5 +82,5 @@ whereare.sexy-serbian
 y0ug.itisjustluck.com
 ```
 
-- According to the lab specified format we got top 3 domain . i tried on by one . and found the third one is the answer.
+- According to the lab-specified format, we narrow down to the top 3 domains. I tried one by one. and found that the third one is the answer.
 **th1sis.l1k3aK3y.org**
