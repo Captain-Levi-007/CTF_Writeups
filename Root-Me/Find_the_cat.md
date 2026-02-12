@@ -4,7 +4,7 @@
 The president’s cat was kidnapped by separatists. A suspect carrying a USB key has been arrested. Berthier, once again you have to save the Republic! Analyze this key and find out in which city the cat is retained!
 The md5sum of the archive is edf2f1aaef605c308561888079e7f7f7. Input the city name in lowercase.***
 
-- Downlaod the attachment and unzip it.
+- Download the attachment and unzip it.
 ```
 gunzip ch9.gz 
 ```
@@ -14,7 +14,7 @@ file ch9
 ch9: DOS/MBR boot sector; partition 1 : ID=0xb, start-CHS (0x0,32,33), end-CHS (0x10,81,1), startsector 2048, 260096 sectors, extended partition table (last)
 ```
 - This means ch9 is not a normal file — it’s a disk image containing an MBR partition table.
-- mount the partition to see its contetns. 
+- mount the partition to see its contents. 
 ```
 ❯ sudo mount -o loop,offset=1048576 ch9 /mnt
 
@@ -22,9 +22,9 @@ ch9: DOS/MBR boot sector; partition 1 : ID=0xb, start-CHS (0x0,32,33), end-CHS (
 /mnt ❯ ls
 Documentations  Files  WebSites
 ```
-- those directories have couple of files.
-- nothing intresting found. 
-- I tried to find deleted files . for that i am going to use tool called **testdisk**
+- Those directories have a couple of files.
+- nothing interesting found. 
+- I tried to find deleted files. For that, I am going to use a tool called **testdisk**
 - TestDisk is a free, open-source data recovery software designed to recover lost, deleted, or corrupted partitions and fix non-booting disks.
 
 ```
@@ -38,12 +38,12 @@ sudo testdisk ch9
 
 - Then Quick search 
 ![screenshot](Data/Findcat3.png)
-- press p to list the files and use arrow keys to naviagte threw directories
+- Press p to list the files and use the arrow keys to navigate through directories
 ![screenshot](Data/Findcat4.png)
-- deleted files are marekd in red color .
+- Deleted files are marked in red.
 - Inside **Files** directory we can find a file with name **revendications.odt**
 ![screenshot](Data/Findcat5.png)
-- Select the file and press c and again press c. That copies the selected file to your current directory.
+- Select the file and press C, and again press C. That copies the selected file to your current directory.
 
 ```
 file revendications.odt 
@@ -77,11 +77,11 @@ Archive:  revendications.odt
 ---------                     -------
   2362913                     18 files
 ```
-- you can view the document usiing some online .odt document viwer or use any document editor of you choice (Liber office)
+- You can view the document using an online .odt document viewer or use any document editor of your choice (like LibreOffice)
 ![screenshot](Data/Findcat6.png)
-- You can google translated the message.
+- I understand nothing, so I translated it.
 **GIVE ALSACE BACK ITS AUTONOMY - OR WE'LL KILL THE CAT!!!**
-- Oh! No! we have to save the cat . 
+- Oh! No! We have to save the cat. 
 - unzip the .odt file 
 ```
 sudo unzip revendications.odt
@@ -105,7 +105,7 @@ Archive:  revendications.odt
    creating: Configurations2/menubar/
   inflating: META-INF/manifest.xml   
 ```
-- The jpg image inside the Pictures directory is our cat photo. lets extract the metadata
+- The JPG image inside the Pictures directory is our cat photo. Let's extract the metadata.
 ```
  exiftool 1000000000000CC000000990038D2A62.jpg 
 ExifTool Version Number         : 13.44
@@ -184,8 +184,8 @@ GPS Position                    : 47 deg 36' 16.15" N, 7 deg 24' 52.48" E
 Hyperfocal Distance             : 2.08 m
 Light Value                     : 6.2
 ```
-- Whoop! Whoop! we can see the GPS coordinates, paste them into google earth .
+- Whoop! Whoop! We can see the GPS position. Paste it into Google Earth.
 - or just convert the gps to coordinates(47°36'16.2"N 7°24'52.5"E) and paste in google maps.
 ![screenshot](Data/Findcat7.png)
 - Address **JC37+QRW Helfrantzkirch, France**
-**city: helfrantzkirch
+**city: helfrantzkirch**
