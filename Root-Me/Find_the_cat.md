@@ -188,4 +188,4 @@ Light Value                     : 6.2
 - or just convert the gps to coordinates(47°36'16.2"N 7°24'52.5"E) and paste in google maps.
 ![screenshot](Data/Findcat7.png)
 - Address **JC37+QRW Helfrantzkirch, France**
-**city: helfrantzkirch**
+- **city: helfrantzkirch**
