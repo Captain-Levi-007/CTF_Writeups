@@ -6,17 +6,18 @@ You have a partial dump of his tablet and must restore these valuable documents.
 
 **WARNING : this challenge contains a malware. Don't try to execute or debug any binaries on your own machine. The ZIP archive is protected with the password "infected".**
 
-- Downlaod the attachment and unzip it using the above password.
+- Download the attachment and unzip it using the above password.
 ```
 ls
 Android-dump  ch10.zip
 ```
-- naviate thre the directory . i found a image file at **/Android-dump/media/Documents** 
+- navigate through the directory.
+- I found a image file at **/Android-dump/media/Documents** 
 ```
 ls
 Confidentiel.jpg.enc
 ```
-- But the file is encryted lets try to recover it. 
+- But the file is encrypted, let's try to recover it. 
 - Inside **Android-dump/app** directory i found an apk file
 ```
 Android-dump/app ❯ tree
@@ -25,14 +26,14 @@ Android-dump/app ❯ tree
 
 1 directory, 1 file 
 ```
-- seems this is the malisious Ransomware file. i uploaded it to virustotal to confirm it. 
+- Seems this is the malicious Ransomware file. I uploaded it to Virustotal to confirm. 
 ![screenshot](Data/Ransomware1.png)
 ## Static analysis 
 
-- Lets try to decompile the file analyze the source code . i am going to use a tool called **jadx**
+- Let's try to decompile the file and analyze the source code. I am going to use a tool called **jadx**
 ***open-source tool that decompiles APKs, DEX, and JAR files directly into readable Java source code. It provides a graphical interface, making it easy to navigate application structures and search for sensitive information during analysis.***
 - Installation
-- Downlaod the zip file from the [github](https://github.com/skylot/jadx/releases/tag/v1.5.3)
+- Download the zip file from the [github](https://github.com/skylot/jadx/releases/tag/v1.5.3)
 ```
 sudo unzip jadx-1.5.3.zip -d /opt/jadx-1.5.3                                                             ✘ INT
 [sudo] password for light: 
@@ -47,12 +48,12 @@ Archive:  jadx-1.5.3.zip
    creating: /opt/jadx-1.5.3/lib/
   inflating: /opt/jadx-1.5.3/lib/jadx-1.5.3-all.jar  
 ```
-- start the gui version
+- start the GUI version
 ```
 ./jadx-gui 
 ```
-- upload the apk file and start analysis.
-- In the AndroidManifest.xml file you can see the various type of information about the apk.
+- Upload the apk file and start analysis.
+- In the AndroidManifest.xml file, you can see the Details about the apk.
 - Permissions
 ```
 <uses-permission android:name="android.permission.INTERNET"/>
@@ -64,15 +65,15 @@ Archive:  jadx-1.5.3.zip
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 ```
 - App starts automatically after reboot.
-- using tor network connections , disable system backup and all. 
-- From the AndroidManifest.xml i found a java class called **MainService**
+- Using Tor network connections, disable system backup and all. 
+- From the AndroidManifest.xml i found a Java class called **MainService**
 ```
   </receiver>
         <service android:name="org.simplelocker.MainService"/>
         <service
 ```
-- Double click on the MainService. then a newtab opens with the source code. 
-- Inside the source code we can see a **FilesEncryptor()** function. 
+- Double-click on the MainService. Then a newtab opens with the source code. 
+- Inside the source code, we can see a **FilesEncryptor()** function. 
 ```
                     FilesEncryptor encryptor = new FilesEncryptor(MainService.this.context);
                     encryptor.encrypt();
@@ -80,8 +81,8 @@ Archive:  jadx-1.5.3.zip
                     Log.d(Constants.DEBUG_TAG, "Error: " + e.getMessage());
                 }
 ```
-- Double click on it to open the function in new tab.
-- Inside FileEncryptor() we can find a veriable name     
+- Double-click on it to open the function in a new tab.
+- Inside FileEncryptor() we can find a variable name     
 ```
 public void encrypt() throws Exception {
         if (!this.settings.getBoolean(Constants.FILES_WAS_ENCRYPTED, false) && isExternalStorageWritable()) {
@@ -97,12 +98,12 @@ public void encrypt() throws Exception {
         }
     }
 ```
-- The functions Encrypts files and deletes the originals.
-- It uses Aes encryption to encrypt the files. it stores the password in **Constants.CIPHER_PASSWORD**
-- Double click on it to in the constants class we can find the key
+- The functions encrypt files and delete the originals.
+- It uses Aes encryption to encrypt the files. It stores the password in **Constants.CIPHER_PASSWORD**
+- Double click on it to see in the constants class, we can find the key
 ![secreenshot](Data/Ransomware2.png)
 - **key: mcsTnTld1dDn**
-- Lets Decrypt the file . I am going to use python module pycryptodome.
+- Lets Decrypt the file. I am going to use python module pycryptodome.
 ```
 #!/usr/bin/env python3
 
