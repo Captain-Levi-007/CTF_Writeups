@@ -53,7 +53,7 @@ Archive:  jadx-1.5.3.zip
 ./jadx-gui 
 ```
 - Upload the apk file and start analysis.
-- In the AndroidManifest.xml file, you can see the Details about the apk.
+- In the **AndroidManifest.xml** file, you can see the Details about the APK.
 - Permissions
 ```
 <uses-permission android:name="android.permission.INTERNET"/>
