@@ -66,13 +66,13 @@ Archive:  jadx-1.5.3.zip
 ```
 - App starts automatically after reboot.
 - Using Tor network connections, disable system backup and all. 
-- From the AndroidManifest.xml i found a Java class called **MainService**
+- In the AndroidManifest.xml, I found a Java class called **MainService**
 ```
   </receiver>
         <service android:name="org.simplelocker.MainService"/>
         <service
 ```
-- Double-click on the MainService. Then a newtab opens with the source code. 
+- Double-click on the MainService. Then, a new tab opens with the source code. 
 - Inside the source code, we can see a **FilesEncryptor()** function. 
 ```
                     FilesEncryptor encryptor = new FilesEncryptor(MainService.this.context);
@@ -82,7 +82,7 @@ Archive:  jadx-1.5.3.zip
                 }
 ```
 - Double-click on it to open the function in a new tab.
-- Inside FileEncryptor() we can find a variable name     
+- Inside FileEncryptor(), we can find a variable name     
 ```
 public void encrypt() throws Exception {
         if (!this.settings.getBoolean(Constants.FILES_WAS_ENCRYPTED, false) && isExternalStorageWritable()) {
@@ -103,7 +103,7 @@ public void encrypt() throws Exception {
 - Double click on it to see in the constants class, we can find the key
 ![secreenshot](Data/Ransomware2.png)
 - **key: mcsTnTld1dDn**
-- Lets Decrypt the file. I am going to use python module pycryptodome.
+- Lets Decrypt the file.
 ```
 #!/usr/bin/env python3
 
