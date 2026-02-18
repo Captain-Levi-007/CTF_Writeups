@@ -55,6 +55,8 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 22.38 seconds
 ```
 - A web service running on port 80 lets see what it is. In the mean time i would like to perform an allport TCP scan and a UDP scan using nmap.
+
+
 ![screeshot](Data/Wingdata1.png)
 - We can see the domain, wingdata.htb. let's add it to our /etc/hosts file
 
@@ -62,7 +64,9 @@ Nmap done: 1 IP address (1 host up) scanned in 22.38 seconds
 echo "10.129.2.140 wingdata.htb" | sudo tee -a /etc/hosts 
 ```
 - Web app enumeration
-![screenshot](Data/Wingdta2.png)
+
+![screenshot](Data/Wingdata2.png)
+
 - The client portal in the above screenshot is redirecting us to another url "http://ftp.wingdata.htb/"
 - Let's add this ftp domain to our /etc/hosts  file. 
 - Now visit the url. We can see a login page. The site is running a wing ftp server. The version was disclosed.
@@ -114,6 +118,7 @@ id
 uid=1000(wingftp) gid=1000(wingftp) groups=1000(wingftp),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),100(users),106(netdev)
 ```
 - Stabilizing revshell
+
 ![screenshot](Data/Wingdata3.png)
 
 ## privilege escalation 
@@ -409,7 +414,8 @@ if __name__ == "__main__":
     - Because the hardlink already points to /etc/sudoers, writing to sudoers_link effectively overwrites /etc/sudoers
 
 - Copy-paste the Python code to the attack box 
-[screetnshot](Data/Wingdata4.png)
+
+![screetnshot](Data/Wingdata4.png)
 
 ```
  python3 exploit.py --create-only
