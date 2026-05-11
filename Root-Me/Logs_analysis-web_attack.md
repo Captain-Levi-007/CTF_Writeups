@@ -2,9 +2,9 @@
 
 **Statement**
 
-Our website appears to have been attacked, but our system administrator does not understand web server logs. Can you find out if any data has been stolen ?
+Our website appears to have been attacked, but our system administrator does not understand web server logs. Can you find out if any data has been stolen?
 
-- Downlaod the log file .ch13.txt
+- Download the log file .ch13.txt
 
 ```
 head ch13.txt
@@ -14,9 +14,10 @@ head ch13.txt
 
 ```
 
-- We can see that from the above sample . ther is a base64 payload served via the order perameter . 
-- lets try to decode the base64 payload .
-![screenshot](/Data/loganlysis.png)
+- We can see that from the above sample. There is a base64 payload served via the order parameter. 
+- Let's try to decode the base64 payload.
+  
+![screenshot](Data/loganalysis.png)
 
 ```
 ASC,
@@ -58,13 +59,13 @@ ASC,
 
 from membres where id=1)
 ``` 
-- It is a time base blind sql injection attack it is trying to extract password of userid=1 from members table.
-- it extract each char from password field and convert it into ascii numeric value using ascii() function.
-- then convert it infot binary form using bin() function.
-- After obtaining the binary representation , the payload extracts the first and second bits using the substring() and combines them using concat() function .
-- The exracted two-bit value can produce one of four possible combinations:00,01,10,11.
-- FIELD() function is then used to compare the extracted bits against these four possibilities and return a corresponding numeric position
-- a CASE statement maps each possible result to a different server behavior: immediate response for 00, a 2-second delay for 01, a 4-second delay for 10, and a 6-second delay for 11
+- It is a time-based blind SQL injection attack, it is trying to extract the password of the userid=1 from the members table.
+- It extracts each character from the password field and converts it into an ASCII numeric value using the ascii() function.
+- then convert it into binary form using the bin() function.
+- After obtaining the binary representation, the payload extracts the first and second bits using the substring() and combines them using the concat() function.
+- The extracted two-bit value can produce one of four possible combinations:00,01,10,11.
+- The FIELD() function is then used to compare the extracted bits against these four possibilities and return a corresponding numeric position
+- A CASE statement maps each possible result to a different server behavior: immediate response for 00, a 2-second delay for 01, a 4-second delay for 10, and a 6-second delay for 11
 
 - Now our best shot is timestamp
 ```
@@ -80,9 +81,9 @@ from membres where id=1)
 [18/Jun/2015:12:13:22
 [18/Jun/2015:12:13:26
 ```
-- If you observe closely the time gap between successive requests is wither 0,2,4,6 . so based on the time gap we can construct the binary extracted by the attacker.
+- If you observe the time gap between successive requests is either 0, 2, 4, or 6, then based on the time gap, we can construct the binary extracted by the attacker.
 
-- so to automate this is wrote a python script .
+- So to automate this is wrote a Python script.
 ```
 from datetime import datetime
 
@@ -176,7 +177,7 @@ for i, g in enumerate(groups):
 print("\n[+] Result:\n")
 print(result)
 ```
-- the above script extract the time stamp from the log file and calculate delay between them and then construct the binary to ascii char . 
+- The above script extracts the time stamp from the log file, and calculate delay between them, constructs the binary, and then converts it to ascii char. 
 
 ```
  python3 stolen_data.py
