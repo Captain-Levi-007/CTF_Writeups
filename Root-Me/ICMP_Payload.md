@@ -2,18 +2,18 @@
 
 ***Statement
 This challenge comes from the 18th DEFCON CTF’s qualification.
-CLUE : An information is hidden in the capture of ICMP packets. Validation password is a MD5 hash.***
+CLUE : An information is hidden in the capture of ICMP packets. Validation password is an MD5 hash.***
 
-- downlaod the attacked pcap file . 
-- Open with wireshark 
+- Download the attacked pcap file. 
+- Open with Wireshark 
 ```
 wireshark ch6.pcap
 ```
 
 ![wireshark](Data/icmp_payload.png)
 
-- We can see icmp request reply traffic.
-- we can either consider reply or reqest cause both contains same payload .
+- We can see ICMP request reply traffic.
+- We can either consider reply or reqest cause both contain the same payload.
 
 ```
 tshark -r ch6.pcap -Y "ip.src==192.168.0.2"
@@ -37,7 +37,7 @@ Error loading RSA key file /home/light/Root_me/netwoking/rsakey.pem: No such fil
    30   0.001664  192.168.0.2 → 192.168.0.1  ICMP 298 Echo (ping) request  id=0x0000, seq=0/0, ttl=64
    31   0.001763  192.168.0.2 → 192.168.0.1  ICMP 298 Echo (ping) request  id=0x0000, seq=0/0, ttl=64
 ```
-- so i tried to dum all data field values from icmp request type.
+- So I tried to dump all data field values from the ICMP request type.
 
 ``` 
  tshark -r ch6.pcap -Y "ip.src==192.168.0.2" -T fields -e data
@@ -61,8 +61,8 @@ a56a876755876688675655a7696aa5a867566966665759674f4f58a8585364a85068a85758875764
 6a50598869665057a6a55853575256644f858766a866503464a5585756578587645468a65453595867a76854a8684fa85354878757a65959a8a6588885a7565087876653534f5967555858686955508766524f87a65357563454a650a76a585954585066666a57a64f8585584f6464a554a555a8535087855866a5528750640d64855654505653a66887535669a7675458885955646988535085348753584f59525668a7675268586a85a850a5575568a787856787a7a5574f67875952885855595255525766a5646656665552556968505067565057855787a64f3453686853a6598857595668556654a66850a6686a6a8859694f8856548767a5a8a84f680d
 a85088a7565053a66852664f50856754a6644f4f6953a88552876a52a534a854555950545467a76452855457a552a555596756a656646769a8508856a58852a8a753535259645259a5a56a535057a74f56876a53684f535385885467568734a86a56a5a667875955536887678850a84f504f6a8568678752a75869526758a70d4fa856875257575885584fa85457a6538757685887675764696988508566a5853488535287885057548559596755a7874fa5585357684f85696a524f686788a753a6578854a5a8a657685059545669858557505767a7578764564f87505452a8853456a85758665752a7a65850a86467a84f508869a554545650a8644f6aa50d
 ```
-- On further research i found out the above data is yEnc encoded payload.
-- So i wrote a python script to decode the paylaod .
+- On further research, I found out that the above data is a yEnc encoded payload.
+- So I wrote a Python script to decode the payload.
 ```
 from scapy.all import *
 import re
@@ -83,7 +83,7 @@ for pkt in pkts:
         icmp = pkt[ICMP]
 
         # type 8 = echo request
-        if icmp.type == 8:
+        if ICMP.type == 8:
 
             # raw payload exists
             if pkt.haslayer(Raw):
@@ -125,8 +125,8 @@ for s in re.findall(rb"[ -~]{4,}", decoded):
     print(s.decode(errors="ignore"))
 ```
 
-- The above python script extracts data fields from the request type packets and save it to **payload.yenc** file .
-- Then decode the file from yenc to ascii and prints the printable charters on to screen.
+- The above Python script extracts data fields from the request type packets and save it to the **payload.yenc** file.
+- Then decode the file from YENC to ASCII and print the printable charters on to screen.
 
 ```
 python3 script.py                                                                                                                                                                                           py_venv
@@ -234,6 +234,6 @@ a7290d426b6a1764af6fd7fba5db214e:.<</))][^=+>+<:/+(,/*^+^-%&~[([
 ,~-.<-(}|.&~:=~%&^?{**,&~:%@{
 ```
 
-- In the above output you can see the md5 string
+- In the above output, you can see the MD5 string
 
 **a7290d426b6a1764af6fd7fba5db214e**
