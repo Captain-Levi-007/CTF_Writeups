@@ -10,16 +10,16 @@ You quickly manage to capture some OSPF packets.***
 
 ***sha256sum: 9CF709C4984B7EB6426A6B4B9B3B35604055B6040CCD46B30DF785D7D21F28AB***
 
-- OK! Lets download the attachment. and unzip it.
+- OK! Let's download the attachment. And unzip it.
 
 ```
  unzip ch21.zip 
 Archive:  ch21.zip
   inflating: ospf_authentication_hash.pcapng 
 ```
-- Now we have a pcapng file. The file name says it is a ospf authentication hash. 
+- Now we have a pcapng file. The file name says it is an OSPF authentication hash. 
 - ***Note: (PCAP Next Generation) file is the default, modern format used to store captured network traffic.***
-- Lets open it with wireshark. Before going any further lets understand what is ospf authentication is.
+- Open it with Wireshark. Before going any further, let's understand what OSPF authentication is.
 - [OSPF](https://www.networkacademy.io/ccna/ospf/what-is-ospf) is a link-state routing protocol that uses a mathematical algorithm to determine the best path to every IP destination in the network.
 - [OSPF (Open Shortest Path First) Authentication](https://www.networkacademy.io/ccna/ospf/ospf-plain-text-authentication) is a security mechanism used to protect routing infrastructure. Without authentication, an attacker could easily connect a rogue router to your network, inject false routing information, cause a Denial of Service (DoS) by creating routing loops, or redirect traffic for interception.
 - By enabling authentication, OSPF routers will only form neighbor relationships (adjacencies) and accept routing updates from other routers that share the same pre-configured secret key.
@@ -39,8 +39,8 @@ Types of OSPF Authentication:
 
 						How it works: The actual password is never sent over the wire. Instead, the router uses a hashing algorithm (traditionally MD5, though modern networks use SHA) combined with a Key ID and the OSPF packet content to generate a unique hash value.
 ```
-- Now with the above information lets dig into the pcapng file and find our secret key. 
-- Extractign the md5 hashes from the pcap file.
+- Now, with the above information lets dig into the pcapng file and find our secret key. 
+- Extracting the MD5 hashes from the pcapng file.
 ```
 tshark -r ospf_authentication_hash.pcapng -T fields -e ospf.auth.crypt.data 
 
@@ -60,7 +60,7 @@ c0a4b500effed0bd3d537db6c3295a2f
 ca39bac632801c8857650e8a28a35515
 ```
 - But this info is not enough. A cracking tool also needs the packet contents (or a specially formatted hash containing the packet data).
-- Lets use ettercap to extract hashes.
+- I'm going to use ettercap to extract hashes.
 ```
  ettercap -Tqr ospf_authentication_hash.pcapng 
 
@@ -109,7 +109,7 @@ Unified sniffing was stopped.
 - q → Quiet mode (reduce the amount of output)
 - r file → Read packets from a pcap/pcapng file instead of capturing live traffic
 
-- remove the "OSPF-224.0.0.5-0:" part and save the rest to a file.
+- Remove the "OSPF-224.0.0.5-0:" part and save the rest to a file.
 
 ```
 cut -d ":" -f 2 raw_hash.txt                      
