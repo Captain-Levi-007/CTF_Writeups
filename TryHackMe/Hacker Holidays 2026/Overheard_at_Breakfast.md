@@ -18,7 +18,7 @@ replace conversation.png? [y]es, [n]o, [A]ll, [N]one, [r]ename: y
 
 ![screenshot](../data/oab2.png)
 
-* It is a conversation between two people. They are talking about a social media account, and all we have is an email address.
+* It is a conversation between two parties. They are talking about a social media account, and all we have is an email address.
 * Now we have to find the social media account associated with the email.
 * **Email:** `lambobytelotushotel@gmail.com`
 * There are lots of OSINT tools and online services available to do this task, but I am going to use a tool called **SpiderFoot**. It is available in the Kali Linux repositories.
