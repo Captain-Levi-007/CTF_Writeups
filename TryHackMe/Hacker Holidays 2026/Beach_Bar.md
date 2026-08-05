@@ -21,7 +21,7 @@
 
 ![screenshot](../data/bb5.png)
 
-- The site shows, number of songs in the queue and provides export and import functionality to view the songs, edit them, and upload our own playlist.
+- The site shows the number of songs in the queue and provides export and import functionality to view the songs, edit them, and upload our own playlist.
 - The site uses YAML. We can export and import data in YAML format.
 - YAML (YAML Ain't Markup Language) is a human-readable data serialization format that is commonly used for configuration files, data exchange, and more.
 - Then I checked the web technology stack and found that the backend uses Python.
@@ -72,8 +72,11 @@ bartend+    1360  0.0  0.0   7084  2168 pts/0    S+   12:36   0:00 grep --color=
 ## Root.txt
 
 ```
-cat /root/root.txt 
+bartender@tryhackme-2404:/opt/beach-bar/jukeboxd$ su root
+Password: 
+root@tryhackme-2404:/opt/beach-bar/jukeboxd# cat /root/root.txt 
 THM{cr3d3nt14l_r3us3_4t_th3_b34ch_b4r}
+
 ```
 
 **Flag: THM{cr3d3nt14l_r3us3_4t_th3_b34ch_b4r}**
