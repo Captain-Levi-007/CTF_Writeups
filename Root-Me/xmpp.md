@@ -8,7 +8,7 @@
 - Download the attachment, and we're ready to go.
 
 - Let's open the PCAP file in Wireshark.
-- XMPP stands for Extensible Messaging and Presence Protocol. It is an open protocol for exchanging messages, presence information, and other structured data. It was historically associated with Jabber and is used for instant messaging, collaboration, and machine-to-machine communication.
+- XMPP stands for Extensible Messaging and Presence Protocol. It is an open protocol for exchanging messages, presence information, and other structured Data. It was historically associated with Jabber and is used for instant messaging, collaboration, and machine-to-machine communication.
 - **There are three main communication patterns:**
 	- Client-to-server (C2S): A client connects to its XMPP server to authenticate and send messages.
 	- Server-to-server (S2S): Servers communicate with each other when users belong to different domains.
@@ -20,7 +20,7 @@
 	- SCRAM-SHA-1 — an older SCRAM mechanism that uses SHA-1 and is still found in some deployments.
 	- EXTERNAL — can use an identity established by an external authentication mechanism, such as a TLS client certificate.
 
-![screenshot](../Data/xmpp1.png)
+![screenshot](Data/xmpp1.png)
 
 - From the screenshot above, we can confirm that the client is using the `SCRAM-SHA-1` mechanism for authentication.
 
@@ -28,15 +28,15 @@
 - SCRAM-SHA-1 lets a client prove that it knows a password without sending the password itself to the server during authentication.
 - The client and server perform a challenge-response exchange.
 
-![screenshot](../data/xmpp2.png)
+![screenshot](Data/xmpp2.png)
 
 - Let's try to understand the authentication flow using our PCAP file.
 
-![screenshot](../data/xmpp3.png)
+![screenshot](Data/xmpp3.png)
 
-- The authentication exchange begins when the client at `192.168.0.10` sends an initial authentication message to the server. If we expand the packet under the XMPP protocol in Wireshark, we can find a Base64-encoded string in the CDATA section.
+- The authentication exchange begins when the client at `192.168.0.10` sends an initial authentication message to the server. If we expand the packet under the XMPP protocol in Wireshark, we can find a Base64-encoded string in the CData section.
 
-![screenshot](../data/xmpp4.png)
+![screenshot](Data/xmpp4.png)
 
 - Decoding the Base64 string gives us:
 ```
@@ -48,7 +48,7 @@ n,,n=koma_test,r=hydra
 
 - The server then responds with a `CHALLENGE` packet.
 
-![screenshot](../data/xmpp4.png)
+![screenshot](Data/xmpp5.png)
 
 - The server generates its own nonce contribution, appends it to the client's nonce, and sends the combined nonce, a salt, and an iteration count.
 ```
@@ -75,7 +75,7 @@ v=YQlegvbEwDo2o60YiK2iAkYyPKE=
 - `v` — The server's proof (server signature), which the client verifies using the expected signature calculated from its derived server key and the authentication transcript.
 
 - You can see the visual diagram below to understand the complete flow.
-![screenshot](../data/xmpp5.png)
+![screenshot](Data/xmpp6.png)
 
 - Now that we have gathered the information we need, we can write a Python script to perform an offline password-cracking attempt.
 ```
