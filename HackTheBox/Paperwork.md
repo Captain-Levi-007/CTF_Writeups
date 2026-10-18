@@ -1,7 +1,7 @@
 # PaperWork
 
 - This is an easy Linux box from Hack The Box. Let’s spawn the machine and grab its IP.
-![screenshot](../data/pp1.png)
+![screenshot](Data/pp1.png)
 - I like to perform a quick full-port scan with RustScan.
 ```
 rustscan -a 10.129.248.117 -r 1-65535 --ulimit 5000                                       15s
@@ -65,7 +65,7 @@ Nmap done: 1 IP address (1 host up) scanned in 27.68 seconds
 - An Nginx server is running on port 80 and redirects us to `paperwork.htb`. Let’s add this hostname to `/etc/hosts`.
 - Visiting the site takes us to a page titled “Corporate Systems: Department of Records & Archives.”
 
-![screenshot](../data/pp2.png)
+![screenshot](Data/pp2.png)
 
 - We can see a link named `paperwork-archive-v1.02`. Clicking it downloads the `paperwork-archive-v1.02.zip` archive.
 - Let’s unzip it:
