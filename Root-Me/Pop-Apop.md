@@ -16,7 +16,7 @@ Archive:  ch23.zip
 - Open the PCAP file using Wireshark.
 - As the challenge suggests, this involves POP (Post Office Protocol) authentication. I want to filter the traffic to display only packets related to port 110.
 
-![screenshot](../Data/pop2.png)
+![screenshot](Data/pop2.png)
 
 - If you look at packet number 264, you can see the client sending the following message to the server:
 
@@ -58,7 +58,7 @@ C: APOP bsmith 4ddd4137b84ff2db7291b568289717f0
 
 - Now, let's try to crack the hash offline. I found the corresponding hash format and Hashcat mode for this authentication mechanism.
 
-![screenshot](../Data/pop3.png)
+![screenshot](Data/pop3.png)
 
 - However, I'm using Python to perform the offline password verification.
 
